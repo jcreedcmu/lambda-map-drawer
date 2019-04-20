@@ -1,0 +1,10 @@
+body {
+  background-color: #def;
+}
+
+td {
+  padding: 1em;
+}
+.padleft {
+  padding-left: 3em;
+}

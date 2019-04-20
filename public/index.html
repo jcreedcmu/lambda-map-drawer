@@ -1,6 +1,32 @@
-<body style='background-color: #def;'>
-<canvas id="c1"></canvas>
-<canvas id="c2"></canvas>
-<br>
-<script src="/js/bundle.js"></script>
-</body>
+<html>
+  <head>
+	 <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+	 <canvas id="c1"></canvas>
+	 <canvas id="c2"></canvas>
+	 <br>
+	 <table><tr><td>
+			 <form id="tool">
+				<label>
+				  <input type="radio" name="paint" value="node" checked>
+				  Node
+				</label>
+				<br>
+				<label>
+				  <input type="radio" name="paint" value="edge">
+				  Edge
+				</label>
+				<br>
+				<label>
+				  <input type="radio" name="paint" value="erase">
+				  Erase
+				</label>
+			 </form>
+		  </td>
+		  <td class="padleft">
+			 <button id="compute">compute</button>
+		  </td>
+		  <script src="/js/bundle.js"></script>
+  </body>
+</html>

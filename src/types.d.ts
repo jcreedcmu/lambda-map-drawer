@@ -21,13 +21,22 @@ type Edge = {
   m: Point, // center of gravity of edge
 }
 
+type EdgeSpec = {
+  i: number,
+  which: 'a' | 'b'
+};
+
 type Vertex = {
   p: Point,
   // edges incident to this vertex, sorted clockwise
-  edges: { i: number, which: 'a' | 'b' }[],
+  edges: EdgeSpec[],
 }
 
 type GraphData = {
   vertices: Dict<Vertex>,
   edges: Edge[],
+}
+
+type RootedGraphData = GraphData & {
+  root: string,
 }

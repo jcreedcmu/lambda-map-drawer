@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { findGraph } from './graph';
+import { findGraph, findRootedGraph } from './graph';
 import * as u from './util';
 
 const WIDTH = 16;
@@ -56,7 +56,7 @@ function renderConjoined(sa: SizedArray): ImageData {
   return id;
 }
 
-function render1(conj: ConjoinedData, c2: Canvas) {
+function renderDebug(conj: ConjoinedData, c2: Canvas) {
   c2.d.putImageData(renderConjoined(conj.array), 0, 0);
   Object.keys(conj.avg).forEach(i => {
     const p = conj.avg[i];
@@ -67,26 +67,28 @@ function render1(conj: ConjoinedData, c2: Canvas) {
 
 const NODE_RAD = 5;
 
-function render3(g: GraphData, c: Canvas) {
+function renderCyclicOrdering(g: GraphData, c: Canvas) {
+  console.log(g);
   const { d } = c;
   for (const v of Object.values(g.vertices)) {
     const colors = ["red", "green", "blue"];
-    v.edges.forEach((e, i) => {
-      const m = g.edges[e.i].m;
-      const vec = u.vplus(u.vscale(u.vnorm(u.vsub(m, v.p)), 30), v.p);
-      d.beginPath();
-      console.log(v.p, vec);
-      d.moveTo(v.p.x, v.p.y);
-      d.lineTo(vec.x, vec.y);
-      d.strokeStyle = colors[i];
-      d.lineWidth = 5;
-      d.lineCap = 'round';
-      d.stroke();
-    });
+    if (v.edges.length <= 3) {
+      v.edges.forEach((e, i) => {
+        const m = g.edges[e.i].m;
+        const vec = u.vplus(u.vscale(u.vnorm(u.vsub(m, v.p)), 15), v.p);
+        d.beginPath();
+        d.moveTo(v.p.x, v.p.y);
+        d.lineTo(vec.x, vec.y);
+        d.strokeStyle = colors[i];
+        d.lineWidth = 6;
+        d.lineCap = 'round';
+        d.stroke();
+      });
+    }
   }
 }
 
-function render2(g: GraphData, c: Canvas) {
+function renderGraph(g: RootedGraphData, c: Canvas) {
   const { d } = c
   g.edges.forEach(({ a, b, m }) => {
     const va = g.vertices[a].p;
@@ -101,8 +103,8 @@ function render2(g: GraphData, c: Canvas) {
     d.lineWidth = 1;
     d.stroke();
   });
-  for (let { p } of Object.values(g.vertices)) {
-    d.fillStyle = "white";
+  for (let [k, { p }] of Object.entries(g.vertices)) {
+    d.fillStyle = k == g.root ? "yellow" : "white";
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.beginPath();
@@ -116,15 +118,18 @@ function go() {
   const c1 = getCanvas('c1');
   const c2 = getCanvas('c2');
 
-  document.getElementById('compute')!.addEventListener('click', () => {
+  function compute() {
     const dat = c1.d.getImageData(0, 0, c1.c.width, c1.c.height);
     const conj = findConjoined(dat);
-    const g = findGraph(conj);
-    render1(conj, c2);
-    render3(g, c2);
-    render2(g, c2);
+    const g = findRootedGraph(findGraph(conj));
+    c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
+    //    renderDebug(conj, c2);
+    renderCyclicOrdering(g, c2);
+    renderGraph(g, c2);
     //    console.log(JSON.stringify(g, null, 2));
-  });
+  }
+
+  document.getElementById('compute')!.addEventListener('click', compute);
 
   let prev: Point | undefined = undefined;
 
@@ -158,14 +163,18 @@ function go() {
     prev = p;
   }
 
+  function onMouseup(e: MouseEvent) {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onMove);
+    compute();
+  }
+
   c1.c.addEventListener('mousedown', (e) => {
     const p = relpos(e, c1.c);
     prev = p;
     paint(p);
     document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', (e) => {
-      document.removeEventListener('mousemove', onMove);
-    });
+    document.addEventListener('mouseup', onMouseup);
   });
 
 }

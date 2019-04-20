@@ -1,3 +1,4 @@
+import * as u from './util';
 
 export function findGraph(conj: ConjoinedData): GraphData {
   const vertices: Dict<Vertex> = {};
@@ -29,4 +30,48 @@ export function findGraph(conj: ConjoinedData): GraphData {
     })
   }
   return { vertices, edges };
+}
+
+function opposite(x: 'a' | 'b'): ('a' | 'b') {
+  return x == 'a' ? 'b' : 'a';
+}
+
+export function findRootedGraph(g: GraphData): RootedGraphData {
+  const k = Object.keys(g.vertices);
+  k.sort((a, b) => g.vertices[a].p.y - g.vertices[b].p.y);
+
+  const id1 = k[0];
+  const v1 = g.vertices[id1];
+  const esBrk = v1.edges[0]; // relying on the way we're doing atan2
+  // to have as a consequence that the first edge in the list is the first
+  // one we see counterclockwise from 12 o'clock position. So we
+  // break the edge that feels like it's going most leftish from the
+  // top-most vertex. Probably visually correct in most non-weird cases.
+  const which1 = esBrk.which;
+  const which2 = opposite(which1);
+  const idBrk = esBrk.i;
+  const eBrk = g.edges[esBrk.i];
+  const m = eBrk.m;
+  const id2 = eBrk[which2];
+  const v2 = g.vertices[id2];
+
+  const idNew = g.edges.length;
+  const id3 = '_root';
+  // v2 (which2) .... m .... (which1) v1
+  // ->
+  // v2 (which2) .... (which1) v3 (which2) .... (which1) v1
+  //            idBrk                      idNew
+  g.edges[idBrk][which2] = id2;
+  g.edges[idBrk][which1] = id3;
+  g.edges[idBrk].m = u.vavg(v2.p, m);
+
+  const newEdge = { a: '', b: '', m: u.vavg(m, v1.p) };
+  newEdge[which2] = id3;
+  newEdge[which1] = id1;
+  const edges = g.edges.concat([newEdge]);
+
+  const rootEdges: EdgeSpec[] =
+    [{ i: idBrk, which: which1 }, { i: idNew, which: which2 }];
+  const vertices = { ...g.vertices, [id3]: { p: m, edges: rootEdges } };
+  return { edges, vertices, root: id3 };
 }

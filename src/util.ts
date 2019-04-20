@@ -25,3 +25,7 @@ export function vdiv(b: Point, s: number): Point {
 export function vscale(b: Point, s: number): Point {
   return { x: b.x * s, y: b.y * s };
 }
+
+export function vavg(a: Point, b: Point): Point {
+  return vdiv(vplus(a, b), 2);
+}

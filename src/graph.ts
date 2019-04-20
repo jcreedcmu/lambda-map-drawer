@@ -120,10 +120,10 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
     edges[edge.i] = { ...g.edges[edge.i], tgt: edge.which };
   }
 
-  function process(vid: string, incoming: EdgeSpec) {
-    if (limit-- <= 0) return;
+  function process(vid: string, incoming: EdgeSpec): Exp {
+    if (limit-- <= 0) return { t: 'var' };
     if (vertices[vid] != undefined)
-      return; // already visited this vertex
+      return { t: 'var' }; // already visited this vertex
     const vedges = g.vertices[vid].edges;
     // find incoming edge
     const iix = vedges.findIndex(es => es.i == incoming.i);
@@ -141,26 +141,27 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
     // If we can get to the vertex across right edge *anyway*, that
     // means there's a cycle, and we should be a lambda.
     if (connected(vid, across(g, rightEdge)))
-      processAsLam(vid, leftEdge, rightEdge);
+      return processAsLam(vid, leftEdge, rightEdge);
     else
-      processAsApp(vid, leftEdge, rightEdge);
+      return processAsApp(vid, leftEdge, rightEdge);
   }
 
-  function processAsLam(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec) {
+  function processAsLam(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {
     const vert = g.vertices[vid];
     vertices[vid] = { ...vert, t: 'lam' };
     awayFromMe(leftEdge);
 
-    process(across(g, rightEdge), rightEdge);
+    return { t: 'lam', b: process(across(g, rightEdge), rightEdge) };
   }
 
-  function processAsApp(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec) {
+  function processAsApp(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {
     const vert = g.vertices[vid];
     vertices[vid] = { ...vert, t: 'app' };
     towardMe(leftEdge);
 
-    process(across(g, leftEdge), leftEdge);
-    process(across(g, rightEdge), rightEdge);
+    const cl = process(across(g, leftEdge), leftEdge);
+    const cr = process(across(g, rightEdge), rightEdge);
+    return { t: 'app', f: cr, arg: cl };
   }
 
 
@@ -172,7 +173,7 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   const leftEdge = vert.edges[0];
   const rightEdge = vert.edges[1];
   towardMe(rightEdge);
-  processAsLam(vid, leftEdge, rightEdge);
+  const exp = processAsLam(vid, leftEdge, rightEdge);
 
-  return { vertices, edges, root: g.root };
+  return { vertices, edges, root: g.root, exp };
 }

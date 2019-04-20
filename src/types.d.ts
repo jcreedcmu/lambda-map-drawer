@@ -45,8 +45,14 @@ type NodeType = 'app' | 'lam';
 type LambdaVertex = Vertex & { t: NodeType };
 type LambdaEdge = Edge & { tgt: 'a' | 'b' };
 
+type Exp =
+  |  { t: 'var' }
+  | { t: 'lam', b: Exp }
+  | { t: 'app', f: Exp, arg: Exp };
+
 type LambdaGraphData = {
   root: string,
   vertices: Dict<LambdaVertex>,
   edges: LambdaEdge[],
+  exp: Exp,
 }

@@ -167,6 +167,36 @@ function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Poi
   d.restore();
 }
 
+type From = 'lam' | 'appl' | 'appr' | 'top';
+type StringifyRes = { s: string, vars: number, counter: number };
+
+function stringifyLam(counter: number, G: string[], e: Exp, frm: From): StringifyRes {
+  switch (e.t) {
+    case 'lam': {
+      const v = String.fromCharCode(counter + 97);
+      const bind = frm == 'lam' ? '' : '\u03bb';
+      const res = stringifyLam(counter + 1, G.concat([v]), e.b, 'lam');
+      const rv = bind + v + res.s;
+      return {
+        s: (frm == 'lam' || frm == 'top') ? rv : '(' + rv + ')',
+        vars: res.vars - 1,
+        counter: res.counter,
+      };
+    }
+    case 'app': {
+      const pref = frm == 'lam' ? '.' : '';
+      const res1 = stringifyLam(counter, G, e.f, 'appl');
+      const res2 = stringifyLam(res1.counter, G.slice(res1.vars), e.arg, 'appr');
+      const rv = (pref + res1.s + ' ' + res2.s);
+      return {
+        s: frm == 'appr' ? '(' + rv + ')' : rv,
+        vars: res1.vars + res2.vars,
+        counter: res2.counter
+      };
+    }
+    case 'var': return { s: G[0], vars: 1, counter };
+  }
+}
 function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   const { d } = c
   g.edges.forEach((e) => {
@@ -198,6 +228,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.fill();
     d.stroke();
   }
+  document.getElementById('lambda')!.innerText = stringifyLam(0, [], g.exp, 'top').s;
 }
 
 function enabled(id: string): boolean {
@@ -231,9 +262,10 @@ function go() {
     if (enabled('renderLambda')) {
       try {
         const lg = findLambdaGraph(rg);
-        renderLambdaGraph(lg, c2);
+        const exp = renderLambdaGraph(lg, c2);
       }
       catch (e) {
+        document.getElementById('lambda')!.innerText = '';
         console.log(e);
         renderGraph(rg, c2);
       }
@@ -294,5 +326,5 @@ function go() {
 }
 
 const l = new Loader();
-l.image('/img/sample.png', 'sample');
+l.image('/img/counterexample.png', 'sample');
 l.done(go);

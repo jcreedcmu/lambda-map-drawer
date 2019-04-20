@@ -70,7 +70,6 @@ function renderDebug(conj: ConjoinedData, c2: Canvas) {
 
 
 function renderCyclicOrdering(g: GraphData, c: Canvas) {
-  console.log(g);
   const { d } = c;
   for (const v of Object.values(g.vertices)) {
     const colors = ["red", "green", "blue"];
@@ -150,10 +149,10 @@ function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Poi
   d.translate(m.x, m.y);
   d.rotate(Math.atan2(vb.y - va.y, vb.x - va.x));
   d.beginPath();
-  d.moveTo(8, -6);
-  d.lineTo(10, 0);
-  d.lineTo(8, 6);
-  d.lineTo(15, 0);
+  d.moveTo(0, -3);
+  d.lineTo(2, 0);
+  d.lineTo(0, 3);
+  d.lineTo(8, 0);
   d.fillStyle = "black";
   d.fill();
   d.restore();

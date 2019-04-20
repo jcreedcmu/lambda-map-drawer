@@ -60,7 +60,6 @@ export function findConjoined(id: ImageData): ConjoinedData {
       stack.push({ x, y: y + 1 });
       stack.push({ x, y: y - 1 });
     }
-
   }
 
   const data = new Uint16Array(id.width * id.height);

@@ -93,17 +93,34 @@ function across(g: GraphData, es: EdgeSpec): string {
 }
 
 export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
+
+  function connected(vid1: string, vid2: string): boolean {
+    const seen: Dict<boolean> = {};
+
+    const stack: string[] = [vid1];
+    let v: string | undefined;
+    while (v = stack.pop()) {
+      if (v == vid2) return true;
+      if (seen[v]) continue;
+      seen[v] = true;
+      const vedge = g.vertices[v].edges;
+      vedge.forEach(es => {
+        if (edges[es.i] == undefined)
+          stack.push(across(g, es));
+      })
+    }
+    return false;
+  }
+
   function awayFromMe(edge: EdgeSpec) {
-    console.log('awayFromMe', edge);
     edges[edge.i] = { ...g.edges[edge.i], tgt: opposite(edge.which) };
   }
+
   function towardMe(edge: EdgeSpec) {
-    console.log('towardMe', edge);
     edges[edge.i] = { ...g.edges[edge.i], tgt: edge.which };
   }
 
   function process(vid: string, incoming: EdgeSpec) {
-    console.log('process', vid);
     if (limit-- <= 0) return;
     if (vertices[vid] != undefined)
       return; // already visited this vertex
@@ -115,17 +132,25 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
     const leftEdge = vedges[(iix + 1) % 3];
     const rightEdge = vedges[(iix + 2) % 3];
 
-    // XXX choose whether to lam or app based on connectivity
-    processAsLam(vid, leftEdge, rightEdge);
+    // This is kind of delicate here. We toss in our right edge, which
+    // is always towards us; it's the body of a lambda, or the first
+    // arg of an application. But also that means that edge is
+    // considered untraversable when we're testing connectivity.
+    towardMe(rightEdge);
+
+    // If we can get to the vertex across right edge *anyway*, that
+    // means there's a cycle, and we should be a lambda.
+    if (connected(vid, across(g, rightEdge)))
+      processAsLam(vid, leftEdge, rightEdge);
+    else
+      processAsApp(vid, leftEdge, rightEdge);
   }
 
   function processAsLam(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec) {
-    console.log('processAsLam', vid, leftEdge, rightEdge);
-    console.log('across right', across(g, rightEdge));
     const vert = g.vertices[vid];
     vertices[vid] = { ...vert, t: 'lam' };
     awayFromMe(leftEdge);
-    towardMe(rightEdge);
+
     process(across(g, rightEdge), rightEdge);
   }
 
@@ -133,7 +158,7 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
     const vert = g.vertices[vid];
     vertices[vid] = { ...vert, t: 'app' };
     towardMe(leftEdge);
-    towardMe(rightEdge);
+
     process(across(g, leftEdge), leftEdge);
     process(across(g, rightEdge), rightEdge);
   }
@@ -144,11 +169,10 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   const edges: LambdaEdge[] = [];
   let vid = g.root;
   let vert = g.vertices[vid];
-  processAsLam(vid, vert.edges[0], vert.edges[1]);
+  const leftEdge = vert.edges[0];
+  const rightEdge = vert.edges[1];
+  towardMe(rightEdge);
+  processAsLam(vid, leftEdge, rightEdge);
 
-
-
-  const rv = { vertices, edges, root: g.root };
-  //  console.log(JSON.stringify(rv, null, 2));
-  return rv;
+  return { vertices, edges, root: g.root };
 }

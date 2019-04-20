@@ -29,3 +29,7 @@ export function vscale(b: Point, s: number): Point {
 export function vavg(a: Point, b: Point): Point {
   return vdiv(vplus(a, b), 2);
 }
+
+export function vint(a: Point): Point {
+  return { x: Math.floor(a.x), y: Math.floor(a.y) };
+}

@@ -51,7 +51,7 @@ function renderConjoined(sa: SizedArray): ImageData {
       id.data[ix2 + 0] = (sa.data[ix1] * 17) & 255;
       id.data[ix2 + 1] = (sa.data[ix1] * 71) & 255;
       id.data[ix2 + 2] = (sa.data[ix1] * 157) & 255;
-      id.data[ix2 + 3] = sa.data[ix1] ? 64 : 0;
+      id.data[ix2 + 3] = sa.data[ix1] ? 128 : 0;
     }
   }
   return id;
@@ -61,7 +61,7 @@ function renderDebug(conj: ConjoinedData, c2: Canvas) {
   c2.d.putImageData(renderConjoined(conj.array), 0, 0);
   Object.keys(conj.avg).forEach(i => {
     const p = conj.avg[i];
-    c2.d.fillStyle = "black";
+    c2.d.fillStyle = "white";
     c2.d.fillRect(Math.floor(p.x) - 3, Math.floor(p.y) - 3, 6, 6);
   });
 }
@@ -115,27 +115,36 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
   }
 }
 
+function enabled(id: string): boolean {
+  return (document.getElementById(id) as HTMLFormElement).checked;
+}
+
 function go() {
   const c1 = getCanvas('c1');
   c1.d.drawImage(l.data.img['sample'], 0, 0);
   const c2 = getCanvas('c2');
+
+  ['renderDebug', 'renderCyclic', 'renderGraph'].forEach(id => {
+    document.getElementById(id)!.addEventListener('change', compute);
+  });
+
 
   function compute() {
     const dat = c1.d.getImageData(0, 0, c1.c.width, c1.c.height);
     const conj = findConjoined(dat);
     const g = findRootedGraph(findGraph(conj));
     c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
-    //    renderDebug(conj, c2);
-    //    renderCyclicOrdering(g, c2);
-    renderGraph(g, c2);
-    //    console.log(JSON.stringify(g, null, 2));
+    if (enabled('renderDebug')) renderDebug(conj, c2);
+    if (enabled('renderCyclic')) renderCyclicOrdering(g, c2);
+    if (enabled('renderGraph')) renderGraph(g, c2);
   }
 
-  document.getElementById('compute')!.addEventListener('click', compute);
+  //  document.getElementById('compute')!.addEventListener('click', compute);
 
   let prev: Point | undefined = undefined;
 
   function paint(p: Point) {
+    p = u.vint(p);
     const t = currentTool();
     const size = sizeOfTool(t)
     c1.d.fillStyle = colorOfTool(t);

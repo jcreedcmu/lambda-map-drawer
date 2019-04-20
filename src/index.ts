@@ -1,5 +1,6 @@
 import { findConjoined } from './conjoined';
 import { findGraph } from './graph';
+import * as u from './util';
 
 const WIDTH = 16;
 
@@ -26,9 +27,9 @@ function currentTool(): Tool {
 
 function sizeOfTool(t: Tool): number {
   switch (t) {
-    case 'node': return 16;
-    case 'edge': return 8;
-    case 'erase': return 32;
+    case 'node': return WIDTH;
+    case 'edge': return WIDTH / 2;
+    case 'erase': return WIDTH * 2;
   }
 }
 
@@ -66,6 +67,25 @@ function render1(conj: ConjoinedData, c2: Canvas) {
 
 const NODE_RAD = 5;
 
+function render3(g: GraphData, c: Canvas) {
+  const { d } = c;
+  for (const v of Object.values(g.vertices)) {
+    const colors = ["red", "green", "blue"];
+    v.edges.forEach((e, i) => {
+      const m = g.edges[e.i].m;
+      const vec = u.vplus(u.vscale(u.vnorm(u.vsub(m, v.p)), 30), v.p);
+      d.beginPath();
+      console.log(v.p, vec);
+      d.moveTo(v.p.x, v.p.y);
+      d.lineTo(vec.x, vec.y);
+      d.strokeStyle = colors[i];
+      d.lineWidth = 5;
+      d.lineCap = 'round';
+      d.stroke();
+    });
+  }
+}
+
 function render2(g: GraphData, c: Canvas) {
   const { d } = c
   g.edges.forEach(({ a, b, m }) => {
@@ -74,8 +94,8 @@ function render2(g: GraphData, c: Canvas) {
     d.beginPath();
     d.moveTo(va.x, va.y);
     d.quadraticCurveTo(
-      3 * m.x - 2 * (va.x + vb.x) / 2,
-      3 * m.y - 2 * (va.y + vb.y) / 2,
+      2 * m.x - (va.x + vb.x) / 2,
+      2 * m.y - (va.y + vb.y) / 2,
       vb.x, vb.y);
     d.strokeStyle = "black";
     d.lineWidth = 1;
@@ -101,10 +121,12 @@ function go() {
     const conj = findConjoined(dat);
     const g = findGraph(conj);
     render1(conj, c2);
+    render3(g, c2);
     render2(g, c2);
-    console.log(conj.marks);
-    console.log(conj.adjacent);
+    //    console.log(JSON.stringify(g, null, 2));
   });
+
+  let prev: Point | undefined = undefined;
 
   function paint(p: Point) {
     const t = currentTool();
@@ -113,13 +135,33 @@ function go() {
     c1.d.fillRect(p.x - size / 2, p.y - size / 2, size, size);
   }
 
+  function paintLine(p: Point, q: Point) {
+    if (Math.max(Math.abs(p.x - q.x), Math.abs(p.y - q.y)) < WIDTH / 2) {
+      paint(q);
+    }
+    else {
+      const avg = {
+        x: Math.floor((p.x + q.x) / 2),
+        y: Math.floor((p.y + q.y) / 2)
+      };
+      paintLine(p, avg);
+      paintLine(avg, q);
+    }
+  }
+
   function onMove(e: MouseEvent) {
     const p = relpos(e, c1.c);
-    paint(p);
+    if (prev != undefined)
+      paintLine(prev, p);
+    else
+      paint(p);
+    prev = p;
   }
 
   c1.c.addEventListener('mousedown', (e) => {
-    paint(relpos(e, c1.c));
+    const p = relpos(e, c1.c);
+    prev = p;
+    paint(p);
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', (e) => {
       document.removeEventListener('mousemove', onMove);

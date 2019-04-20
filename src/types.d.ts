@@ -23,6 +23,8 @@ type Edge = {
 
 type Vertex = {
   p: Point,
+  // edges incident to this vertex, sorted clockwise
+  edges: { i: number, which: 'a' | 'b' }[],
 }
 
 type GraphData = {

@@ -5,7 +5,7 @@ import * as u from './util';
 
 const WIDTH = 16;
 const EDGE_RAD = 7;
-const NODE_RAD = 7;
+const NODE_RAD = 9;
 function relpos(e: MouseEvent, n: Element): Point {
   const rect = n.getBoundingClientRect();
   return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -105,19 +105,27 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
     d.lineWidth = 1;
     d.stroke();
 
-    // DX
-    d.beginPath();
-    d.fillStyle = 'white';
-    d.arc(m.x, m.y, EDGE_RAD, 0, Math.PI * 2);
-    d.fill();
-    d.textAlign = 'center';
-    d.textBaseline = 'middle'
-    d.font = 'bold 10px arial';
-    d.fillStyle = '#404';
-    d.fillText(i + '', m.x, m.y);
+    if (enabled('renderDebugId')) {
+      d.beginPath();
+      d.fillStyle = 'white';
+      d.arc(m.x, m.y, EDGE_RAD, 0, Math.PI * 2);
+      d.fill();
+      d.textAlign = 'center';
+      d.textBaseline = 'middle'
+      d.font = 'bold 10px arial';
+      d.fillStyle = '#404';
+      d.fillText(i + '', m.x, m.y);
+    }
   });
   for (let [k, { p }] of Object.entries(g.vertices)) {
-    d.fillStyle = k == g.root ? "yellow" : "white";
+    d.fillStyle = "#fed";
+
+    if (g.vertices[k].edges.length != 3) {
+      d.fillStyle = "red";
+    }
+    if (k == g.root) {
+      d.fillStyle = "white";
+    }
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.beginPath();
@@ -125,17 +133,18 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
     d.fill();
     d.stroke();
 
-    // DX
-    d.textAlign = 'center';
-    d.textBaseline = 'middle'
-    d.font = 'bold 9px arial';
-    d.fillStyle = '#740';
-    d.fillText(k, p.x, p.y);
+    if (enabled('renderDebugId')) {
+      d.textAlign = 'center';
+      d.textBaseline = 'middle'
+      d.font = 'bold 9px arial';
+      d.fillStyle = '#000';
+      d.fillText(k, p.x, p.y);
+    }
   }
   if (enabled('renderLambda')) {
     d.save();
     d.fillStyle = "white";
-    d.globalAlpha = 0.4;
+    d.globalAlpha = 0.2;
     d.fillRect(0, 0, 500, 500);
     d.restore();
   }
@@ -181,7 +190,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   for (let [k, v] of Object.entries(g.vertices)) {
     if (v == undefined) return;
     const { p, t } = v;
-    d.fillStyle = k == g.root ? "#f0f" : (t == 'app' ? 'white' : 'black');
+    d.fillStyle = k == g.root ? "#aaf" : (t == 'app' ? 'white' : 'black');
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.beginPath();
@@ -200,9 +209,13 @@ function go() {
   c1.d.drawImage(l.data.img['sample'], 0, 0);
   const c2 = getCanvas('c2');
 
-  ['renderDebug', 'renderCyclic', 'renderGraph', 'renderLambda'].forEach(id => {
-    document.getElementById(id)!.addEventListener('change', compute);
-  });
+  ['renderDebug',
+    'renderDebugId',
+    'renderCyclic',
+    'renderGraph',
+    'renderLambda'].forEach(id => {
+      document.getElementById(id)!.addEventListener('change', compute);
+    });
 
 
   function compute() {
@@ -214,8 +227,17 @@ function go() {
     const rg = findRootedGraph(g);
     if (enabled('renderCyclic')) renderCyclicOrdering(rg, c2);
     if (enabled('renderGraph')) renderGraph(rg, c2);
-    const lg = findLambdaGraph(rg);
-    if (enabled('renderLambda')) renderLambdaGraph(lg, c2);
+
+    if (enabled('renderLambda')) {
+      try {
+        const lg = findLambdaGraph(rg);
+        renderLambdaGraph(lg, c2);
+      }
+      catch (e) {
+        console.log(e);
+        renderGraph(rg, c2);
+      }
+    }
   }
 
   //  document.getElementById('compute')!.addEventListener('click', compute);

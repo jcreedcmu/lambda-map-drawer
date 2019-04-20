@@ -181,6 +181,7 @@ function go() {
   }
 
   c1.c.addEventListener('mousedown', (e) => {
+    if (e.buttons != 1) return;
     const p = relpos(e, c1.c);
     prev = p;
     paint(p);

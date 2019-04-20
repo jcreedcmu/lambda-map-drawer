@@ -18,6 +18,7 @@ type ConjoinedData = {
   array: SizedArray,
   marks: Dict<MarkType>,
   avg: Dict<Point>,
+  adjacent: Dict<Dict<boolean>>,
 }
 
 function relpos(e: MouseEvent, n: Element): Point {
@@ -135,7 +136,28 @@ function findConjoined(id: ImageData): ConjoinedData {
     avg[i].x /= total[i];
     avg[i].y /= total[i];
   }
-  return { array, marks, avg };
+
+  const adjacent: Dict<Dict<boolean>> = {};
+  function makeAdj(x: number, y: number) {
+    if (x == y) return;
+    if (!adjacent[x]) adjacent[x] = {};
+    adjacent[x][y] = true;
+    if (!adjacent[y]) adjacent[y] = {};
+    adjacent[y][x] = true;
+  }
+  for (let x = 0; x < array.w - 1; x++) {
+    for (let y = 0; y < array.h - 1; y++) {
+      const here = valueGet(array, x, y);
+      if (here) {
+        const there1 = valueGet(array, x + 1, y);
+        if (there1) makeAdj(here, there1);
+        const there2 = valueGet(array, x, y + 1);
+        if (there2) makeAdj(here, there2);
+      }
+    }
+  }
+
+  return { array, marks, avg, adjacent };
 }
 
 function renderConjoined(sa: SizedArray): ImageData {
@@ -167,6 +189,7 @@ function go() {
       c2.d.fillRect(p.x - 1, p.y - 1, 2, 2);
     });
     console.log(conj.marks);
+    console.log(conj.adjacent);
   });
 
   function paint(p: Point) {

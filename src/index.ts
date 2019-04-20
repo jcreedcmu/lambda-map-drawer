@@ -1,10 +1,11 @@
 import { findConjoined } from './conjoined';
-import { findGraph, findRootedGraph } from './graph';
+import { findGraph, findRootedGraph, findLambdaGraph } from './graph';
 import { Loader } from './loader';
 import * as u from './util';
 
 const WIDTH = 16;
-
+const EDGE_RAD = 7;
+const NODE_RAD = 7;
 function relpos(e: MouseEvent, n: Element): Point {
   const rect = n.getBoundingClientRect();
   return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -66,7 +67,7 @@ function renderDebug(conj: ConjoinedData, c2: Canvas) {
   });
 }
 
-const NODE_RAD = 5;
+
 
 function renderCyclicOrdering(g: GraphData, c: Canvas) {
   console.log(g);
@@ -81,7 +82,7 @@ function renderCyclicOrdering(g: GraphData, c: Canvas) {
         d.moveTo(v.p.x, v.p.y);
         d.lineTo(vec.x, vec.y);
         d.strokeStyle = colors[i];
-        d.lineWidth = 6;
+        d.lineWidth = 3;
         d.lineCap = 'round';
         d.stroke();
       });
@@ -91,7 +92,8 @@ function renderCyclicOrdering(g: GraphData, c: Canvas) {
 
 function renderGraph(g: RootedGraphData, c: Canvas) {
   const { d } = c
-  g.edges.forEach(({ a, b, m }) => {
+
+  g.edges.forEach(({ a, b, m }, i) => {
     const va = g.vertices[a].p;
     const vb = g.vertices[b].p;
     d.beginPath();
@@ -103,9 +105,84 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.stroke();
+
+    // DX
+    d.beginPath();
+    d.fillStyle = 'white';
+    d.arc(m.x, m.y, EDGE_RAD, 0, Math.PI * 2);
+    d.fill();
+    d.textAlign = 'center';
+    d.textBaseline = 'middle'
+    d.font = 'bold 10px arial';
+    d.fillStyle = '#404';
+    d.fillText(i + '', m.x, m.y);
   });
   for (let [k, { p }] of Object.entries(g.vertices)) {
     d.fillStyle = k == g.root ? "yellow" : "white";
+    d.strokeStyle = "black";
+    d.lineWidth = 1;
+    d.beginPath();
+    d.arc(p.x, p.y, NODE_RAD, 0, 2 * Math.PI);
+    d.fill();
+    d.stroke();
+
+    // DX
+    d.textAlign = 'center';
+    d.textBaseline = 'middle'
+    d.font = 'bold 9px arial';
+    d.fillStyle = '#740';
+    d.fillText(k, p.x, p.y);
+  }
+  if (enabled('renderLambda')) {
+    d.save();
+    d.fillStyle = "white";
+    d.globalAlpha = 0.4;
+    d.fillRect(0, 0, 500, 500);
+    d.restore();
+  }
+}
+
+function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Point) {
+  d.strokeStyle = "black";
+  d.lineWidth = 1;
+  d.stroke();
+  d.save();
+  d.translate(m.x, m.y);
+  d.rotate(Math.atan2(vb.y - va.y, vb.x - va.x));
+  d.beginPath();
+  d.moveTo(8, -6);
+  d.lineTo(10, 0);
+  d.lineTo(8, 6);
+  d.lineTo(15, 0);
+  d.fillStyle = "black";
+  d.fill();
+  d.restore();
+}
+
+function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
+  const { d } = c
+  g.edges.forEach((e) => {
+    if (e == undefined) return;
+    const { a, b, m, tgt } = e;
+    if (g.vertices[a] == undefined) return;
+    if (g.vertices[b] == undefined) return;
+    const va = g.vertices[a].p;
+    const vb = g.vertices[b].p;
+    d.beginPath();
+    d.moveTo(va.x, va.y);
+    d.quadraticCurveTo(
+      2 * m.x - (va.x + vb.x) / 2,
+      2 * m.y - (va.y + vb.y) / 2,
+      vb.x, vb.y);
+    if (tgt == 'b')
+      drawArrowHead(d, m, va, vb);
+    else
+      drawArrowHead(d, m, vb, va);
+  });
+  for (let [k, v] of Object.entries(g.vertices)) {
+    if (v == undefined) return;
+    const { p, t } = v;
+    d.fillStyle = k == g.root ? "#f0f" : (t == 'app' ? 'white' : 'black');
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.beginPath();
@@ -124,19 +201,22 @@ function go() {
   c1.d.drawImage(l.data.img['sample'], 0, 0);
   const c2 = getCanvas('c2');
 
-  ['renderDebug', 'renderCyclic', 'renderGraph'].forEach(id => {
+  ['renderDebug', 'renderCyclic', 'renderGraph', 'renderLambda'].forEach(id => {
     document.getElementById(id)!.addEventListener('change', compute);
   });
 
 
   function compute() {
+    c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
     const dat = c1.d.getImageData(0, 0, c1.c.width, c1.c.height);
     const conj = findConjoined(dat);
-    const g = findRootedGraph(findGraph(conj));
-    c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
     if (enabled('renderDebug')) renderDebug(conj, c2);
-    if (enabled('renderCyclic')) renderCyclicOrdering(g, c2);
-    if (enabled('renderGraph')) renderGraph(g, c2);
+    const g = findGraph(conj);
+    const rg = findRootedGraph(g);
+    if (enabled('renderCyclic')) renderCyclicOrdering(rg, c2);
+    if (enabled('renderGraph')) renderGraph(rg, c2);
+    const lg = findLambdaGraph(rg);
+    if (enabled('renderLambda')) renderLambdaGraph(lg, c2);
   }
 
   //  document.getElementById('compute')!.addEventListener('click', compute);

@@ -40,3 +40,13 @@ type GraphData = {
 type RootedGraphData = GraphData & {
   root: string,
 }
+
+type NodeType = 'app' | 'lam';
+type LambdaVertex = Vertex & { t: NodeType };
+type LambdaEdge = Edge & { tgt: 'a' | 'b' };
+
+type LambdaGraphData = {
+  root: string,
+  vertices: Dict<LambdaVertex>,
+  edges: LambdaEdge[],
+}

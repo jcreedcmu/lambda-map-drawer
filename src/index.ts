@@ -1,5 +1,6 @@
 import { findConjoined } from './conjoined';
 import { findGraph, findRootedGraph } from './graph';
+import { Loader } from './loader';
 import * as u from './util';
 
 const WIDTH = 16;
@@ -116,6 +117,7 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
 
 function go() {
   const c1 = getCanvas('c1');
+  c1.d.drawImage(l.data.img['sample'], 0, 0);
   const c2 = getCanvas('c2');
 
   function compute() {
@@ -124,7 +126,7 @@ function go() {
     const g = findRootedGraph(findGraph(conj));
     c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
     //    renderDebug(conj, c2);
-    renderCyclicOrdering(g, c2);
+    //    renderCyclicOrdering(g, c2);
     renderGraph(g, c2);
     //    console.log(JSON.stringify(g, null, 2));
   }
@@ -176,6 +178,10 @@ function go() {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onMouseup);
   });
+  compute();
 
 }
-go();
+
+const l = new Loader();
+l.image('/img/sample.png', 'sample');
+l.done(go);

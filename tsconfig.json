@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
+	 "lib": [ "es2017.object", "dom", "es6" ],
     "sourceMap": true,
 	 "noFallthroughCasesInSwitch": true,
 	 "noImplicitAny": true,

@@ -6,3 +6,26 @@ type SizedArray = { w: number, h: number, data: Uint16Array };
 
 type Color = { r: number, g: number, b: number };
 type MarkType = 'node' | 'edge' | 'unknown';
+
+type ConjoinedData = {
+  array: SizedArray,
+  numMarks: number,
+  marks: Dict<MarkType>,
+  avg: Dict<Point>,
+  adjacent: Dict<Dict<boolean>>,
+}
+
+type Edge = {
+  a: string, // vertex id
+  b: string,
+  m: Point, // center of gravity of edge
+}
+
+type Vertex = {
+  p: Point,
+}
+
+type GraphData = {
+  vertices: Dict<Vertex>,
+  edges: Edge[],
+}

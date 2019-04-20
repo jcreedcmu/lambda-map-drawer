@@ -27,13 +27,6 @@ function markTypeOfColor(c: Color): MarkType {
   return 'unknown';
 }
 
-type ConjoinedData = {
-  array: SizedArray,
-  marks: Dict<MarkType>,
-  avg: Dict<Point>,
-  adjacent: Dict<Dict<boolean>>,
-}
-
 export function findConjoined(id: ImageData): ConjoinedData {
   let counter = 1;
   const marks: Dict<MarkType> = {};
@@ -99,6 +92,7 @@ export function findConjoined(id: ImageData): ConjoinedData {
     for (let y = 0; y < array.h - 1; y++) {
       const here = valueGet(array, x, y);
       if (here) {
+        if (!adjacent[here]) adjacent[here] = {};
         const there1 = valueGet(array, x + 1, y);
         if (there1) makeAdj(here, there1);
         const there2 = valueGet(array, x, y + 1);
@@ -107,5 +101,5 @@ export function findConjoined(id: ImageData): ConjoinedData {
     }
   }
 
-  return { array, marks, avg, adjacent };
+  return { array, marks, avg, adjacent, numMarks: counter - 1 };
 }

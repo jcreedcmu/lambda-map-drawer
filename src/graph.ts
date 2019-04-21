@@ -36,21 +36,13 @@ function opposite(x: 'a' | 'b'): ('a' | 'b') {
   return x == 'a' ? 'b' : 'a';
 }
 
-export function findRootedGraph(g: GraphData): RootedGraphData {
-  const k = Object.keys(g.vertices);
-  k.sort((a, b) => g.vertices[a].p.y - g.vertices[b].p.y);
-
-  const id1 = k[0];
-  const v1 = g.vertices[id1];
-  const esBrk = v1.edges[0]; // relying on the way we're doing atan2
-  // to have as a consequence that the first edge in the list is the first
-  // one we see counterclockwise from 12 o'clock position. So we
-  // break the edge that feels like it's going most leftish from the
-  // top-most vertex. Probably visually correct in most non-weird cases.
+export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData {
   const which1 = esBrk.which;
   const which2 = opposite(which1);
   const idBrk = esBrk.i;
   const eBrk = g.edges[esBrk.i];
+  const id1 = eBrk[which1];
+  const v1 = g.vertices[id1];
   const m = eBrk.m;
   const id2 = eBrk[which2];
   const v2 = g.vertices[id2];
@@ -85,6 +77,20 @@ export function findRootedGraph(g: GraphData): RootedGraphData {
   };
   vertices[id3] = { p: m, edges: rootEdges };
   return { edges, vertices, root: id3 };
+}
+
+export function findRootedGraph(g: GraphData): RootedGraphData {
+  const k = Object.keys(g.vertices);
+  k.sort((a, b) => g.vertices[a].p.y - g.vertices[b].p.y);
+
+  const id1 = k[0];
+  const v1 = g.vertices[id1];
+  const esBrk = v1.edges[0]; // relying on the way we're doing atan2
+  // to have as a consequence that the first edge in the list is the first
+  // one we see counterclockwise from 12 o'clock position. So we
+  // break the edge that feels like it's going most leftish from the
+  // top-most vertex. Probably visually correct in most non-weird cases.
+  return breakGraphAtEdge(g, esBrk);
 }
 
 // gives the vertex id on the *other* side of es

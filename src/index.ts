@@ -290,6 +290,7 @@ function go() {
   let prev: Point | undefined = undefined;
 
   function paint(p: Point) {
+    examples.selectedIndex = -1; // drawing invalidates example selection
     p = u.vint(p);
     const t = currentTool();
     const size = sizeOfTool(t)
@@ -326,16 +327,17 @@ function go() {
     compute();
   }
 
-  document.getElementById('clear')!.addEventListener('click', () => {
+  function clearCanvas() {
     c1.d.fillStyle = "white";
     c1.d.fillRect(0, 0, c1.c.width, c1.c.height);
+  }
+
+  document.getElementById('clear')!.addEventListener('click', () => {
+    clearCanvas();
     compute();
   });
 
   const examples = document.getElementById('examples')! as HTMLSelectElement;
-  examples.addEventListener('mousedown', () => {
-    examples.selectedIndex = -1;
-  });
   examples.addEventListener('change', () => {
     c1.d.drawImage(l.data.img[examples.value], 0, 0);
     compute();
@@ -349,6 +351,31 @@ function go() {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onMouseup);
   });
+
+
+  document.addEventListener('paste', (event) => {
+    const items = Array.from(event.clipboardData!.items);
+
+    items.forEach(item => {
+      if (item.kind === 'file') {
+        const blob = item.getAsFile()!;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const im = new Image();
+          if (typeof (reader.result) == 'string') {
+            im.src = reader.result;
+            im.addEventListener('load', () => {
+              clearCanvas();
+              c1.d.drawImage(im, Math.floor((c1.c.width - im.width) / 2), Math.floor((c1.c.height - im.height) / 2));
+              compute();
+            });
+          }
+        }; // data url!
+        reader.readAsDataURL(blob);
+      }
+    });
+  });
+
   compute();
 
 }
@@ -357,4 +384,9 @@ const l = new Loader();
 l.image('./img/example1.png', 'example1');
 l.image('./img/example2.png', 'example2');
 l.image('./img/example3.png', 'example3');
+l.image('./img/cube.png', 'cube');
+l.image('./img/dodecahedron.png', 'dodecahedron');
+l.image('./img/prism.png', 'prism');
+l.image('./img/tetrahedron.png', 'tetrahedron');
+l.image('./img/tutte.png', 'tutte');
 l.done(go);

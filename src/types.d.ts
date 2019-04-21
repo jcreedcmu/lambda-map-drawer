@@ -46,9 +46,19 @@ type LambdaVertex = Vertex & { t: NodeType };
 type LambdaEdge = Edge & { tgt: 'a' | 'b' };
 
 type Exp =
-  |  { t: 'var' }
+  | { t: 'var' }
   | { t: 'lam', b: Exp }
   | { t: 'app', f: Exp, arg: Exp };
+
+type ExpS =
+  | { t: 'var' }
+  | { t: 'lam', b: ExpS }
+  | {
+    t: 'app',
+    f: ExpS,
+    arg: ExpS,
+    split: number // how many variables go to the f side
+  };
 
 type LambdaGraphData = {
   root: string,

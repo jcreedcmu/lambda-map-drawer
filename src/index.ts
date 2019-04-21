@@ -168,9 +168,24 @@ function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Poi
 }
 
 type From = 'lam' | 'appl' | 'appr' | 'top';
-type StringifyRes = { s: string, vars: number, counter: number };
+type StringifyRes = { s: string, counter: number };
 
-function stringifyLam(counter: number, G: string[], e: Exp, frm: From): StringifyRes {
+function findSplit(e: Exp): { e: ExpS, size: number } {
+  switch (e.t) {
+    case 'lam': {
+      const { e: e0, size: size0 } = findSplit(e.b);
+      return { e: { t: 'lam', b: e0 }, size: size0 - 1 };
+    }
+    case 'app': {
+      const { e: ef, size: sizef } = findSplit(e.f);
+      const { e: ea, size: sizea } = findSplit(e.arg);
+      return { e: { t: 'app', f: ef, arg: ea, split: sizef }, size: sizef + sizea };
+    }
+    case 'var': return { e, size: 1 };
+  }
+}
+
+function stringifyLam(counter: number, G: string[], e: ExpS, frm: From): StringifyRes {
   switch (e.t) {
     case 'lam': {
       const v = String.fromCharCode(counter + 97);
@@ -179,22 +194,20 @@ function stringifyLam(counter: number, G: string[], e: Exp, frm: From): Stringif
       const rv = bind + v + res.s;
       return {
         s: (frm == 'lam' || frm == 'top') ? rv : '(' + rv + ')',
-        vars: res.vars - 1,
         counter: res.counter,
       };
     }
     case 'app': {
       const pref = frm == 'lam' ? '.' : '';
-      const res1 = stringifyLam(counter, G, e.f, 'appl');
-      const res2 = stringifyLam(res1.counter, G.slice(res1.vars), e.arg, 'appr');
+      const res1 = stringifyLam(counter, G.slice(0, e.split), e.f, 'appl');
+      const res2 = stringifyLam(res1.counter, G.slice(e.split), e.arg, 'appr');
       const rv = (pref + res1.s + ' ' + res2.s);
       return {
         s: frm == 'appr' ? '(' + rv + ')' : rv,
-        vars: res1.vars + res2.vars,
         counter: res2.counter
       };
     }
-    case 'var': return { s: G[0], vars: 1, counter };
+    case 'var': return { s: G[0], counter };
   }
 }
 function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
@@ -228,7 +241,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.fill();
     d.stroke();
   }
-  document.getElementById('lambda')!.innerText = stringifyLam(0, [], g.exp, 'top').s;
+  document.getElementById('lambda')!.innerText = stringifyLam(0, [], findSplit(g.exp).e, 'top').s;
 }
 
 function enabled(id: string): boolean {

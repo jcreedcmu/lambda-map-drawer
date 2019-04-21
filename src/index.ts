@@ -263,6 +263,7 @@ function go() {
 
 
   function compute() {
+    document.getElementById('lambda')!.innerText = '';
     c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
     const dat = c1.d.getImageData(0, 0, c1.c.width, c1.c.height);
     const conj = findConjoined(dat);
@@ -278,7 +279,7 @@ function go() {
         const exp = renderLambdaGraph(lg, c2);
       }
       catch (e) {
-        document.getElementById('lambda')!.innerText = '';
+        document.getElementById('lambda')!.innerHTML = '<font color="red">All nodes must have exactly three edges to compute lambda graph.</font>';
         console.log(e);
         renderGraph(rg, c2);
       }

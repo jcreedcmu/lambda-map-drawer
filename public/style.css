@@ -13,3 +13,8 @@ td {
 .padleft {
   padding-left: 3em;
 }
+
+
+#instr {
+  width: 35em; padding-bottom: 25px;
+}

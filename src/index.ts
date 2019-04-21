@@ -326,6 +326,12 @@ function go() {
     compute();
   }
 
+  document.getElementById('clear')!.addEventListener('click', () => {
+    c1.d.fillStyle = "white";
+    c1.d.fillRect(0, 0, c1.c.width, c1.c.height);
+    compute();
+  });
+
   c1.c.addEventListener('mousedown', (e) => {
     if (e.buttons != 1) return;
     const p = relpos(e, c1.c);

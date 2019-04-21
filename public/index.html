@@ -4,11 +4,6 @@
   </head>
   <body>
 	 <center>
-		<div id="instr"><b>Instructions</b>: If you draw a graph with nodes (red) and edges (blue) such that
-		every node has exactly three edges, it determines a lambda-calculus term obeying certain
-		ordering constraints. <a href="https://github.com/jcreedcmu/lambda-maps/blob/master/README.md">See here</a>
-		for some more links to literature.
-</div>
 		<canvas id="c1"></canvas>
 		<canvas id="c2"></canvas>
 		<br>
@@ -50,12 +45,7 @@
 			 <td class="padleft">
 				<label>
 				  <input type="checkbox" id="renderDebug">
-				  Debugging
-				</label>
-				<br>
-				<label>
-				  <input type="checkbox" id="renderDebugId">
-				  Debugging Ids
+				  Connectivity Debugging
 				</label>
 				<br>
 				<label>
@@ -67,6 +57,10 @@
 				  <input type="checkbox" id="renderGraph">
 				  Graph
 				</label>
+				<label>
+				  <input type="checkbox" id="renderDebugId">
+				  +Debugging Ids
+				</label>
 				<br>
 				<label>
 				  <input type="checkbox" id="renderLambda" checked>
@@ -75,8 +69,21 @@
 			 </td>
 		  </tr>
 		</table>
-		<br>
 		<pre id="lambda"></pre>
+		<div id="instr">
+		  <img src="img/explain.png" class="floatright">
+		  <b>Instructions</b>: If you draw a graph
+		  with <font color="#f00">nodes</font>
+		  and <font color="#00f">edges</font> such that every node has
+		  exactly three edges, it determines a lambda-calculus term
+		  obeying certain ordering
+		  constraints. <a href="https://github.com/jcreedcmu/lambda-maps/blob/master/README.md">See
+			 here</a> for some more links to literature. When the lambda
+		  graph is successfully computed, the bluish dot is the lambda
+		  at the root of the term, black dots are other lambdas, and
+		  white dots are applications. Arrowheads generally point up the AST of the lambda-term, toward the root.
+		  The variable bound by a lambda is an arrow emerging from the bottom left side of the lambda node.
+		</div>
 	 </center>
 	 <script src="/js/bundle.js"></script>
   </body>

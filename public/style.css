@@ -16,5 +16,15 @@ td {
 
 
 #instr {
-  width: 35em; padding-bottom: 25px;
+  width: 45em; padding-top: 25px;
+}
+
+.floatright {
+  float: right;
+  margin-left: 15px;
+  margin-bottom: 15px;
+}
+
+pre {
+  min-height: 1.5em;
 }

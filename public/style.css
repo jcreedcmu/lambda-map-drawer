@@ -2,9 +2,14 @@ body {
   background-color: #def;
 }
 
+.center {
+  text-align: center;
+}
+
 td {
   padding: 1em;
 }
+
 .padleft {
   padding-left: 3em;
 }

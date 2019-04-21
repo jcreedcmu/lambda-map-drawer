@@ -250,7 +250,7 @@ function enabled(id: string): boolean {
 
 function go() {
   const c1 = getCanvas('c1');
-  c1.d.drawImage(l.data.img['sample'], 0, 0);
+  c1.d.drawImage(l.data.img['example1'], 0, 0);
   const c2 = getCanvas('c2');
 
   ['renderDebug',
@@ -332,6 +332,15 @@ function go() {
     compute();
   });
 
+  const examples = document.getElementById('examples')! as HTMLSelectElement;
+  examples.addEventListener('mousedown', () => {
+    examples.selectedIndex = -1;
+  });
+  examples.addEventListener('change', () => {
+    c1.d.drawImage(l.data.img[examples.value], 0, 0);
+    compute();
+  });
+
   c1.c.addEventListener('mousedown', (e) => {
     if (e.buttons != 1) return;
     const p = relpos(e, c1.c);
@@ -345,5 +354,7 @@ function go() {
 }
 
 const l = new Loader();
-l.image('/img/counterexample.png', 'sample');
+l.image('./img/example1.png', 'example1');
+l.image('./img/example2.png', 'example2');
+l.image('./img/example3.png', 'example3');
 l.done(go);

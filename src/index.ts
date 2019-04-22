@@ -278,10 +278,12 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.stroke();
   }
 
-
-  for (const e of g.rootData.otherRoots) {
-    drawSmolClickable(d, e.p);
+  if (enabled('renderRootChoices')) {
+    for (const e of g.rootData.otherRoots) {
+      drawSmolClickable(d, e.p);
+    }
   }
+
   document.getElementById('lambda')!.innerText = stringifyLam(0, [], findSplit(g.exp).e, 'top').s;
 }
 
@@ -364,13 +366,16 @@ class App {
     const { c1, c2 } = this;
     c1.d.drawImage(l.data.img['example1'], 0, 0);
 
-    ['renderDebug',
+    [
+      'renderDebug',
       'renderDebugId',
       'renderCyclic',
       'renderGraph',
-      'renderLambda'].forEach(id => {
-        document.getElementById(id)!.addEventListener('change', () => this.compute());
-      });
+      'renderLambda',
+      'renderRootChoices',
+    ].forEach(id => {
+      document.getElementById(id)!.addEventListener('change', () => this.compute());
+    });
 
     let prev: Point | undefined = undefined;
 
@@ -418,7 +423,7 @@ class App {
     });
 
     c2.c.addEventListener('mousedown', (e) => {
-      if (this.lambdaGraph != undefined) {
+      if (this.lambdaGraph != undefined && enabled('renderRootChoices')) {
         const p = relpos(e, c2.c);
         const vr = this.lambdaGraph.vertices[this.lambdaGraph.rootData.root].p;
         if (c2.d.isPointInPath(circlePath(vr, NODE_RAD + HIT_EXTRA), p.x, p.y)) {

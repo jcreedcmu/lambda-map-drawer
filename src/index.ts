@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { findGraph, findRootedGraph, findLambdaGraph } from './graph';
+import { findGraph, findRootedGraph, findLambdaGraph, breakGraphAtEdge } from './graph';
 import { Loader } from './loader';
 import * as u from './util';
 
@@ -276,6 +276,7 @@ class App {
   graph?: GraphData;
   rootedGraph?: RootedGraphData;
   lambdaGraph?: LambdaGraphData;
+  forceRoot: EdgeSpec | undefined;
 
   compute() {
     this.conj = undefined;
@@ -290,7 +291,7 @@ class App {
     const conj = this.conj = findConjoined(dat);
     if (enabled('renderDebug')) renderDebug(conj, c2);
     const g = this.graph = findGraph(conj);
-    const rg = this.rootedGraph = findRootedGraph(g);
+    const rg = this.rootedGraph = this.forceRoot ? breakGraphAtEdge(g, this.forceRoot) : findRootedGraph(g);
     if (enabled('renderCyclic')) renderCyclicOrdering(rg, c2);
     if (enabled('renderGraph')) renderGraph(rg, c2);
 
@@ -312,6 +313,33 @@ class App {
     this.c2 = getCanvas('c2');
   }
 
+  paint(p: Point) {
+    const { c1 } = this;
+    const examples = document.getElementById('examples')! as HTMLSelectElement;
+    examples.selectedIndex = -1; // drawing invalidates example selection
+    this.forceRoot = undefined;
+
+    p = u.vint(p);
+    const t = currentTool();
+    const size = sizeOfTool(t)
+    c1.d.fillStyle = colorOfTool(t);
+    c1.d.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+  }
+
+  paintLine(p: Point, q: Point) {
+    if (Math.max(Math.abs(p.x - q.x), Math.abs(p.y - q.y)) < WIDTH / 2) {
+      this.paint(q);
+    }
+    else {
+      const avg = {
+        x: Math.floor((p.x + q.x) / 2),
+        y: Math.floor((p.y + q.y) / 2)
+      };
+      this.paintLine(p, avg);
+      this.paintLine(avg, q);
+    }
+  }
+
   go() {
     const { c1, c2 } = this;
     c1.d.drawImage(l.data.img['example1'], 0, 0);
@@ -324,46 +352,18 @@ class App {
         document.getElementById(id)!.addEventListener('change', () => this.compute());
       });
 
-
-
-
-    //  document.getElementById('compute')!.addEventListener('click', compute);
-
     let prev: Point | undefined = undefined;
 
-    function paint(p: Point) {
-      examples.selectedIndex = -1; // drawing invalidates example selection
-      p = u.vint(p);
-      const t = currentTool();
-      const size = sizeOfTool(t)
-      c1.d.fillStyle = colorOfTool(t);
-      c1.d.fillRect(p.x - size / 2, p.y - size / 2, size, size);
-    }
-
-    function paintLine(p: Point, q: Point) {
-      if (Math.max(Math.abs(p.x - q.x), Math.abs(p.y - q.y)) < WIDTH / 2) {
-        paint(q);
-      }
-      else {
-        const avg = {
-          x: Math.floor((p.x + q.x) / 2),
-          y: Math.floor((p.y + q.y) / 2)
-        };
-        paintLine(p, avg);
-        paintLine(avg, q);
-      }
-    }
-
-    function onMove(e: MouseEvent) {
+    const onMove = (e: MouseEvent) => {
       const p = relpos(e, c1.c);
       if (prev != undefined)
-        paintLine(prev, p);
+        this.paintLine(prev, p);
       else
-        paint(p);
+        this.paint(p);
       prev = p;
     }
 
-    function onMouseup(e: MouseEvent) {
+    const onMouseup = (e: MouseEvent) => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onMove);
       this.compute();
@@ -389,7 +389,7 @@ class App {
       if (e.buttons != 1) return;
       const p = relpos(e, c1.c);
       prev = p;
-      paint(p);
+      this.paint(p);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onMouseup);
     });
@@ -399,7 +399,8 @@ class App {
         const p = relpos(e, c2.c);
         this.lambdaGraph.otherRoots.forEach(root => {
           if (c2.d.isPointInPath(smolClickable(root.p), p.x, p.y)) {
-            console.log(root.es);
+            this.forceRoot = root.es;
+            this.compute();
           }
         });
       }

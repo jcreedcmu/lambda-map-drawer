@@ -40,6 +40,8 @@ type GraphData = {
 type RootData = {
   root: string,
   otherRoots: RootSpec[],
+  rootDir: Point, // unit vector in the direction the root output should point
+  brokenEdge: EdgeSpec, // edge of the original graph that was broken
 }
 
 type RootedGraphData = GraphData & { rootData: RootData }

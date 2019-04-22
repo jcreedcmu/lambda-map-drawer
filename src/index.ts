@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { findGraph, findRootedGraph, findLambdaGraph, breakGraphAtEdge } from './graph';
+import { findGraph, findRootedGraph, findLambdaGraph, breakGraphAtEdge, opposite } from './graph';
 import { Loader } from './loader';
 import * as u from './util';
 
@@ -7,6 +7,7 @@ const WIDTH = 16;
 const EDGE_RAD = 7;
 const NODE_RAD = 9;
 const SMOL_SIZE = 4;
+const HIT_EXTRA = 5;
 
 function relpos(e: MouseEvent, n: Element): Point {
   const rect = n.getBoundingClientRect();
@@ -152,13 +153,13 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
   }
 }
 
-function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Point) {
+function _drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
   d.strokeStyle = "black";
   d.lineWidth = 1;
   d.stroke();
   d.save();
-  d.translate(m.x, m.y);
-  d.rotate(Math.atan2(vb.y - va.y, vb.x - va.x));
+  d.translate(p.x, p.y);
+  d.rotate(angle);
   d.beginPath();
   d.moveTo(0, -3);
   d.lineTo(2, 0);
@@ -167,6 +168,10 @@ function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Poi
   d.fillStyle = "black";
   d.fill();
   d.restore();
+}
+
+function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Point) {
+  _drawArrowHead(d, m, Math.atan2(vb.y - va.y, vb.x - va.x));
 }
 
 type From = 'lam' | 'appl' | 'appr' | 'top';
@@ -213,14 +218,14 @@ function stringifyLam(counter: number, G: string[], e: ExpS, frm: From): Stringi
   }
 }
 
-function smolClickable(p: Point, extraPixels?: number): Path2D {
+function circlePath(p: Point, rad: number): Path2D {
   const pp = new Path2D();
-  pp.arc(p.x, p.y, SMOL_SIZE + (extraPixels || 0), 0, Math.PI * 2);
+  pp.arc(p.x, p.y, rad, 0, Math.PI * 2);
   return pp;
 }
 
 function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
-  const pp = smolClickable(p);
+  const pp = circlePath(p, SMOL_SIZE);
   d.fillStyle = "white";
   d.strokeStyle = "gray";
   d.lineWidth = 1;
@@ -248,6 +253,19 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     else
       drawArrowHead(d, m, vb, va);
   });
+
+  // Draw root edge
+  const rp = new Path2D();
+  const vr = g.vertices[g.rootData.root].p;
+  const ROOT_LEN = 20;
+  const vs = u.vplus(vr, u.vscale(g.rootData.rootDir, ROOT_LEN));
+  rp.moveTo(vr.x, vr.y);
+  rp.lineTo(vs.x, vs.y);
+  d.strokeStyle = "black";
+  d.lineWidth = 1;
+  d.stroke(rp);
+  _drawArrowHead(d, vs, Math.atan2(g.rootData.rootDir.y, g.rootData.rootDir.x));
+
   for (let [k, v] of Object.entries(g.vertices)) {
     if (v == undefined) return;
     const { p, t } = v;
@@ -259,6 +277,8 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.fill();
     d.stroke();
   }
+
+
   for (const e of g.rootData.otherRoots) {
     drawSmolClickable(d, e.p);
   }
@@ -381,6 +401,7 @@ class App {
 
     const examples = document.getElementById('examples')! as HTMLSelectElement;
     examples.addEventListener('change', () => {
+      this.forceRoot = undefined;
       c1.d.drawImage(l.data.img[examples.value], 0, 0);
       this.compute();
     });
@@ -392,18 +413,30 @@ class App {
       this.paint(p);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onMouseup);
+      e.stopPropagation();
+      e.preventDefault();
     });
 
     c2.c.addEventListener('mousedown', (e) => {
       if (this.lambdaGraph != undefined) {
         const p = relpos(e, c2.c);
-        this.lambdaGraph.rootData.otherRoots.forEach(root => {
-          if (c2.d.isPointInPath(smolClickable(root.p, 5), p.x, p.y)) {
-            this.forceRoot = root.es;
-            this.compute();
-          }
-        });
+        const vr = this.lambdaGraph.vertices[this.lambdaGraph.rootData.root].p;
+        if (c2.d.isPointInPath(circlePath(vr, NODE_RAD + HIT_EXTRA), p.x, p.y)) {
+          const brokenEdge = this.lambdaGraph.rootData.brokenEdge;
+          this.forceRoot = { i: brokenEdge.i, which: opposite(brokenEdge.which) };
+          this.compute();
+        }
+        else {
+          this.lambdaGraph.rootData.otherRoots.forEach(root => {
+            if (c2.d.isPointInPath(circlePath(root.p, SMOL_SIZE + HIT_EXTRA), p.x, p.y)) {
+              this.forceRoot = root.es;
+              this.compute();
+            }
+          });
+        }
       }
+      e.stopPropagation();
+      e.preventDefault();
     });
 
     document.addEventListener('paste', (event) => {

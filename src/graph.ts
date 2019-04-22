@@ -34,7 +34,7 @@ export function findGraph(conj: ConjoinedData): GraphData {
   return { vertices, edges };
 }
 
-function opposite(x: 'a' | 'b'): ('a' | 'b') {
+export function opposite(x: 'a' | 'b'): ('a' | 'b') {
   return x == 'a' ? 'b' : 'a';
 }
 
@@ -93,7 +93,8 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
     otherRoots.push({ p: u.vsub(e.m, off), es: { i, which: 'b' } });
   });
 
-  return { edges, vertices, rootData: { root: id3, otherRoots } };
+  const rootDir = u.vrot90(u.vnorm(u.vsub(v1.p, v2.p)));
+  return { edges, vertices, rootData: { root: id3, otherRoots, rootDir, brokenEdge: esBrk } };
 }
 
 export function findRootedGraph(g: GraphData): RootedGraphData {

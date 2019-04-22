@@ -39,6 +39,7 @@ type GraphData = {
 
 type RootedGraphData = GraphData & {
   root: string,
+  otherRoots: RootSpec[],
 }
 
 type NodeType = 'app' | 'lam';
@@ -64,5 +65,8 @@ type LambdaGraphData = {
   root: string,
   vertices: Dict<LambdaVertex>,
   edges: LambdaEdge[],
+  otherRoots: RootSpec[],
   exp: Exp,
 }
+
+type RootSpec = Point;

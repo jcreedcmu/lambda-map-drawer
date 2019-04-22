@@ -33,3 +33,7 @@ export function vavg(a: Point, b: Point): Point {
 export function vint(a: Point): Point {
   return { x: Math.floor(a.x), y: Math.floor(a.y) };
 }
+
+export function vrot90(a: Point): Point {
+  return { x: a.y, y: -a.x };
+}

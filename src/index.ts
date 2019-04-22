@@ -6,6 +6,8 @@ import * as u from './util';
 const WIDTH = 16;
 const EDGE_RAD = 7;
 const NODE_RAD = 9;
+const SMOL_SIZE = 4;
+
 function relpos(e: MouseEvent, n: Element): Point {
   const rect = n.getBoundingClientRect();
   return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -210,6 +212,22 @@ function stringifyLam(counter: number, G: string[], e: ExpS, frm: From): Stringi
     case 'var': return { s: G[0], counter };
   }
 }
+
+function smolClickable(p: Point): Path2D {
+  const pp = new Path2D();
+  pp.arc(p.x, p.y, SMOL_SIZE, 0, Math.PI * 2);
+  return pp;
+}
+
+function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
+  const pp = smolClickable(p);
+  d.fillStyle = "white";
+  d.strokeStyle = "gray";
+  d.lineWidth = 1;
+  d.fill(pp);
+  d.stroke(pp);
+}
+
 function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   const { d } = c
   g.edges.forEach((e) => {
@@ -240,6 +258,9 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.arc(p.x, p.y, NODE_RAD, 0, 2 * Math.PI);
     d.fill();
     d.stroke();
+  }
+  for (const e of g.otherRoots) {
+    drawSmolClickable(d, e);
   }
   document.getElementById('lambda')!.innerText = stringifyLam(0, [], findSplit(g.exp).e, 'top').s;
 }
@@ -353,6 +374,9 @@ function go() {
     document.addEventListener('mouseup', onMouseup);
   });
 
+  c2.c.addEventListener('mousedown', (e) => {
+
+  });
 
   document.addEventListener('paste', (event) => {
     const items = Array.from(event.clipboardData!.items);

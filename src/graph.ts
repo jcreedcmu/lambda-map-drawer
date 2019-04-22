@@ -1,5 +1,7 @@
 import * as u from './util';
 
+const SMOL_OFFSET = 12;
+
 export function findGraph(conj: ConjoinedData): GraphData {
   const vertices: Dict<Vertex> = {};
   const edges: { a: string, m: Point, b: string }[] = [];
@@ -58,7 +60,9 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
   g.edges[idBrk][which1] = id3;
   g.edges[idBrk].m = u.vavg(v2.p, m);
 
-  const newEdge = { a: '', b: '', m: u.vavg(m, v1.p) };
+  const newEdge: Edge = {
+    a: '', b: '', m: u.vavg(m, v1.p)
+  };
   newEdge[which2] = id3;
   newEdge[which1] = id1;
   const edges = g.edges.concat([newEdge]);
@@ -76,7 +80,20 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
     )
   };
   vertices[id3] = { p: m, edges: rootEdges };
-  return { edges, vertices, root: id3 };
+
+  const otherRoots: RootSpec[] = [];
+  g.edges.forEach((e, i) => {
+    if (i == esBrk.i)
+      return;
+    const va = g.vertices[e.a].p;
+    const vb = g.vertices[e.b].p;
+    const off = u.vrot90(u.vscale(u.vnorm(u.vsub(va, vb)), SMOL_OFFSET));
+
+    otherRoots.push(u.vplus(e.m, off));
+    otherRoots.push(u.vsub(e.m, off));
+  });
+
+  return { edges, vertices, root: id3, otherRoots };
 }
 
 export function findRootedGraph(g: GraphData): RootedGraphData {
@@ -181,5 +198,5 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   towardMe(rightEdge);
   const exp = processAsLam(vid, leftEdge, rightEdge);
 
-  return { vertices, edges, root: g.root, exp };
+  return { vertices, edges, root: g.root, exp, otherRoots: g.otherRoots };
 }

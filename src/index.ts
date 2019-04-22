@@ -260,7 +260,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.stroke();
   }
   for (const e of g.otherRoots) {
-    drawSmolClickable(d, e);
+    drawSmolClickable(d, e.p);
   }
   document.getElementById('lambda')!.innerText = stringifyLam(0, [], findSplit(g.exp).e, 'top').s;
 }
@@ -269,34 +269,34 @@ function enabled(id: string): boolean {
   return (document.getElementById(id) as HTMLFormElement).checked;
 }
 
-function go() {
-  const c1 = getCanvas('c1');
-  c1.d.drawImage(l.data.img['example1'], 0, 0);
-  const c2 = getCanvas('c2');
+class App {
+  c1: Canvas;
+  c2: Canvas;
+  conj?: ConjoinedData;
+  graph?: GraphData;
+  rootedGraph?: RootedGraphData;
+  lambdaGraph?: LambdaGraphData;
 
-  ['renderDebug',
-    'renderDebugId',
-    'renderCyclic',
-    'renderGraph',
-    'renderLambda'].forEach(id => {
-      document.getElementById(id)!.addEventListener('change', compute);
-    });
+  compute() {
+    this.conj = undefined;
+    this.graph = undefined;
+    this.rootedGraph = undefined;
+    this.lambdaGraph = undefined;
 
-
-  function compute() {
+    const { c1, c2 } = this;
     document.getElementById('lambda')!.innerText = '';
     c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
     const dat = c1.d.getImageData(0, 0, c1.c.width, c1.c.height);
-    const conj = findConjoined(dat);
+    const conj = this.conj = findConjoined(dat);
     if (enabled('renderDebug')) renderDebug(conj, c2);
-    const g = findGraph(conj);
-    const rg = findRootedGraph(g);
+    const g = this.graph = findGraph(conj);
+    const rg = this.rootedGraph = findRootedGraph(g);
     if (enabled('renderCyclic')) renderCyclicOrdering(rg, c2);
     if (enabled('renderGraph')) renderGraph(rg, c2);
 
     if (enabled('renderLambda')) {
       try {
-        const lg = findLambdaGraph(rg);
+        const lg = this.lambdaGraph = findLambdaGraph(rg);
         const exp = renderLambdaGraph(lg, c2);
       }
       catch (e) {
@@ -307,104 +307,132 @@ function go() {
     }
   }
 
-  //  document.getElementById('compute')!.addEventListener('click', compute);
-
-  let prev: Point | undefined = undefined;
-
-  function paint(p: Point) {
-    examples.selectedIndex = -1; // drawing invalidates example selection
-    p = u.vint(p);
-    const t = currentTool();
-    const size = sizeOfTool(t)
-    c1.d.fillStyle = colorOfTool(t);
-    c1.d.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+  constructor() {
+    this.c1 = getCanvas('c1');
+    this.c2 = getCanvas('c2');
   }
 
-  function paintLine(p: Point, q: Point) {
-    if (Math.max(Math.abs(p.x - q.x), Math.abs(p.y - q.y)) < WIDTH / 2) {
-      paint(q);
-    }
-    else {
-      const avg = {
-        x: Math.floor((p.x + q.x) / 2),
-        y: Math.floor((p.y + q.y) / 2)
-      };
-      paintLine(p, avg);
-      paintLine(avg, q);
-    }
-  }
+  go() {
+    const { c1, c2 } = this;
+    c1.d.drawImage(l.data.img['example1'], 0, 0);
 
-  function onMove(e: MouseEvent) {
-    const p = relpos(e, c1.c);
-    if (prev != undefined)
-      paintLine(prev, p);
-    else
+    ['renderDebug',
+      'renderDebugId',
+      'renderCyclic',
+      'renderGraph',
+      'renderLambda'].forEach(id => {
+        document.getElementById(id)!.addEventListener('change', () => this.compute());
+      });
+
+
+
+
+    //  document.getElementById('compute')!.addEventListener('click', compute);
+
+    let prev: Point | undefined = undefined;
+
+    function paint(p: Point) {
+      examples.selectedIndex = -1; // drawing invalidates example selection
+      p = u.vint(p);
+      const t = currentTool();
+      const size = sizeOfTool(t)
+      c1.d.fillStyle = colorOfTool(t);
+      c1.d.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+    }
+
+    function paintLine(p: Point, q: Point) {
+      if (Math.max(Math.abs(p.x - q.x), Math.abs(p.y - q.y)) < WIDTH / 2) {
+        paint(q);
+      }
+      else {
+        const avg = {
+          x: Math.floor((p.x + q.x) / 2),
+          y: Math.floor((p.y + q.y) / 2)
+        };
+        paintLine(p, avg);
+        paintLine(avg, q);
+      }
+    }
+
+    function onMove(e: MouseEvent) {
+      const p = relpos(e, c1.c);
+      if (prev != undefined)
+        paintLine(prev, p);
+      else
+        paint(p);
+      prev = p;
+    }
+
+    function onMouseup(e: MouseEvent) {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onMove);
+      this.compute();
+    }
+
+    function clearCanvas() {
+      c1.d.fillStyle = "white";
+      c1.d.fillRect(0, 0, c1.c.width, c1.c.height);
+    }
+
+    document.getElementById('clear')!.addEventListener('click', () => {
+      clearCanvas();
+      this.compute();
+    });
+
+    const examples = document.getElementById('examples')! as HTMLSelectElement;
+    examples.addEventListener('change', () => {
+      c1.d.drawImage(l.data.img[examples.value], 0, 0);
+      this.compute();
+    });
+
+    c1.c.addEventListener('mousedown', (e) => {
+      if (e.buttons != 1) return;
+      const p = relpos(e, c1.c);
+      prev = p;
       paint(p);
-    prev = p;
-  }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onMouseup);
+    });
 
-  function onMouseup(e: MouseEvent) {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onMove);
-    compute();
-  }
-
-  function clearCanvas() {
-    c1.d.fillStyle = "white";
-    c1.d.fillRect(0, 0, c1.c.width, c1.c.height);
-  }
-
-  document.getElementById('clear')!.addEventListener('click', () => {
-    clearCanvas();
-    compute();
-  });
-
-  const examples = document.getElementById('examples')! as HTMLSelectElement;
-  examples.addEventListener('change', () => {
-    c1.d.drawImage(l.data.img[examples.value], 0, 0);
-    compute();
-  });
-
-  c1.c.addEventListener('mousedown', (e) => {
-    if (e.buttons != 1) return;
-    const p = relpos(e, c1.c);
-    prev = p;
-    paint(p);
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onMouseup);
-  });
-
-  c2.c.addEventListener('mousedown', (e) => {
-
-  });
-
-  document.addEventListener('paste', (event) => {
-    const items = Array.from(event.clipboardData!.items);
-
-    items.forEach(item => {
-      if (item.kind === 'file') {
-        const blob = item.getAsFile()!;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const im = new Image();
-          if (typeof (reader.result) == 'string') {
-            im.src = reader.result;
-            im.addEventListener('load', () => {
-              clearCanvas();
-              c1.d.drawImage(im, Math.floor((c1.c.width - im.width) / 2), Math.floor((c1.c.height - im.height) / 2));
-              compute();
-            });
+    c2.c.addEventListener('mousedown', (e) => {
+      if (this.lambdaGraph != undefined) {
+        const p = relpos(e, c2.c);
+        this.lambdaGraph.otherRoots.forEach(root => {
+          if (c2.d.isPointInPath(smolClickable(root.p), p.x, p.y)) {
+            console.log(root.es);
           }
-        }; // data url!
-        reader.readAsDataURL(blob);
+        });
       }
     });
-  });
 
-  compute();
+    document.addEventListener('paste', (event) => {
+      const items = Array.from(event.clipboardData!.items);
 
+      items.forEach(item => {
+        if (item.kind === 'file') {
+          const blob = item.getAsFile()!;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const im = new Image();
+            if (typeof (reader.result) == 'string') {
+              im.src = reader.result;
+              im.addEventListener('load', () => {
+                clearCanvas();
+                c1.d.drawImage(im, Math.floor((c1.c.width - im.width) / 2), Math.floor((c1.c.height - im.height) / 2));
+                this.compute();
+              });
+            }
+          }; // data url!
+          reader.readAsDataURL(blob);
+        }
+      });
+    });
+    this.compute();
+  }
 }
 
+const app = new App();
+(window as any)['app'] = app;
 const l = new Loader();
 l.image('./img/example1.png', 'example1');
 l.image('./img/example2.png', 'example2');
@@ -414,4 +442,4 @@ l.image('./img/dodecahedron.png', 'dodecahedron');
 l.image('./img/prism.png', 'prism');
 l.image('./img/tetrahedron.png', 'tetrahedron');
 l.image('./img/tutte.png', 'tutte');
-l.done(go);
+l.done(() => app.go());

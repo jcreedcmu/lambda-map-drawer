@@ -69,4 +69,4 @@ type LambdaGraphData = {
   exp: Exp,
 }
 
-type RootSpec = Point;
+type RootSpec = { p: Point, es: EdgeSpec };

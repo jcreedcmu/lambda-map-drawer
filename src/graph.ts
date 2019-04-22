@@ -89,8 +89,8 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
     const vb = g.vertices[e.b].p;
     const off = u.vrot90(u.vscale(u.vnorm(u.vsub(va, vb)), SMOL_OFFSET));
 
-    otherRoots.push(u.vplus(e.m, off));
-    otherRoots.push(u.vsub(e.m, off));
+    otherRoots.push({ p: u.vplus(e.m, off), es: { i, which: 'a' } });
+    otherRoots.push({ p: u.vsub(e.m, off), es: { i, which: 'b' } });
   });
 
   return { edges, vertices, root: id3, otherRoots };

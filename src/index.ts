@@ -125,7 +125,7 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
     if (g.vertices[k].edges.length != 3) {
       d.fillStyle = "red";
     }
-    if (k == g.root) {
+    if (k == g.rootData.root) {
       d.fillStyle = "white";
     }
     d.strokeStyle = "black";
@@ -213,9 +213,9 @@ function stringifyLam(counter: number, G: string[], e: ExpS, frm: From): Stringi
   }
 }
 
-function smolClickable(p: Point): Path2D {
+function smolClickable(p: Point, extraPixels?: number): Path2D {
   const pp = new Path2D();
-  pp.arc(p.x, p.y, SMOL_SIZE, 0, Math.PI * 2);
+  pp.arc(p.x, p.y, SMOL_SIZE + (extraPixels || 0), 0, Math.PI * 2);
   return pp;
 }
 
@@ -251,7 +251,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   for (let [k, v] of Object.entries(g.vertices)) {
     if (v == undefined) return;
     const { p, t } = v;
-    d.fillStyle = k == g.root ? "#aaf" : (t == 'app' ? 'white' : 'black');
+    d.fillStyle = k == g.rootData.root ? "#aaf" : (t == 'app' ? 'white' : 'black');
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.beginPath();
@@ -259,7 +259,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.fill();
     d.stroke();
   }
-  for (const e of g.otherRoots) {
+  for (const e of g.rootData.otherRoots) {
     drawSmolClickable(d, e.p);
   }
   document.getElementById('lambda')!.innerText = stringifyLam(0, [], findSplit(g.exp).e, 'top').s;
@@ -397,8 +397,8 @@ class App {
     c2.c.addEventListener('mousedown', (e) => {
       if (this.lambdaGraph != undefined) {
         const p = relpos(e, c2.c);
-        this.lambdaGraph.otherRoots.forEach(root => {
-          if (c2.d.isPointInPath(smolClickable(root.p), p.x, p.y)) {
+        this.lambdaGraph.rootData.otherRoots.forEach(root => {
+          if (c2.d.isPointInPath(smolClickable(root.p, 5), p.x, p.y)) {
             this.forceRoot = root.es;
             this.compute();
           }

@@ -93,7 +93,7 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
     otherRoots.push({ p: u.vsub(e.m, off), es: { i, which: 'b' } });
   });
 
-  return { edges, vertices, root: id3, otherRoots };
+  return { edges, vertices, rootData: { root: id3, otherRoots } };
 }
 
 export function findRootedGraph(g: GraphData): RootedGraphData {
@@ -191,12 +191,12 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   let limit = 100;
   const vertices: Dict<LambdaVertex> = {};
   const edges: LambdaEdge[] = [];
-  let vid = g.root;
+  let vid = g.rootData.root;
   let vert = g.vertices[vid];
   const leftEdge = vert.edges[0];
   const rightEdge = vert.edges[1];
   towardMe(rightEdge);
   const exp = processAsLam(vid, leftEdge, rightEdge);
 
-  return { vertices, edges, root: g.root, exp, otherRoots: g.otherRoots };
+  return { vertices, edges, rootData: g.rootData, exp };
 }

@@ -37,10 +37,12 @@ type GraphData = {
   edges: Edge[],
 }
 
-type RootedGraphData = GraphData & {
+type RootData = {
   root: string,
   otherRoots: RootSpec[],
 }
+
+type RootedGraphData = GraphData & { rootData: RootData }
 
 type NodeType = 'app' | 'lam';
 type LambdaVertex = Vertex & { t: NodeType };
@@ -62,10 +64,9 @@ type ExpS =
   };
 
 type LambdaGraphData = {
-  root: string,
   vertices: Dict<LambdaVertex>,
   edges: LambdaEdge[],
-  otherRoots: RootSpec[],
+  rootData: RootData,
   exp: Exp,
 }
 

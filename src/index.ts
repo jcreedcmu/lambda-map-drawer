@@ -2,6 +2,7 @@ import { findConjoined } from './conjoined';
 import { findGraph, findRootedGraph, findLambdaGraph, breakGraphAtEdge, opposite } from './graph';
 import { Loader } from './loader';
 import * as u from './util';
+import SvgCanvas = require('canvas2svg');
 
 const WIDTH = 16;
 const EDGE_RAD = 7;
@@ -255,15 +256,15 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   });
 
   // Draw root edge
-  const rp = new Path2D();
   const vr = g.vertices[g.rootData.root].p;
   const ROOT_LEN = 20;
   const vs = u.vplus(vr, u.vscale(g.rootData.rootDir, ROOT_LEN));
-  rp.moveTo(vr.x, vr.y);
-  rp.lineTo(vs.x, vs.y);
+  d.beginPath();
+  d.moveTo(vr.x, vr.y);
+  d.lineTo(vs.x, vs.y);
   d.strokeStyle = "black";
   d.lineWidth = 1;
-  d.stroke(rp);
+  d.stroke();
   _drawArrowHead(d, vs, Math.atan2(g.rootData.rootDir.y, g.rootData.rootDir.x));
 
   for (let [k, v] of Object.entries(g.vertices)) {
@@ -327,12 +328,16 @@ class App {
   forceRoot: EdgeSpec | undefined;
 
   compute() {
+    this._compute(this.c1, this.c2);
+  }
+
+  // analyzes image data in c1 and puts the result in c2
+  _compute(c1: Canvas, c2: Canvas) {
     this.conj = undefined;
     this.graph = undefined;
     this.rootedGraph = undefined;
     this.lambdaGraph = undefined;
 
-    const { c1, c2 } = this;
     document.getElementById('lambda')!.innerText = '';
     c2.d.clearRect(0, 0, c2.c.width, c2.c.height);
     const dat = c1.d.getImageData(0, 0, c1.c.width, c1.c.height);
@@ -436,6 +441,18 @@ class App {
     document.getElementById('clear')!.addEventListener('click', () => {
       clearCanvas();
       this.compute();
+    });
+
+    document.getElementById('exportSvg')!.addEventListener('click', () => {
+      const svgCanvas = new SvgCanvas(c2.c.width, c2.c.height);
+      this._compute(this.c1, { c: c2.c, d: svgCanvas });
+
+      // Since we don't have navigator.clipboard.write, I guess this will do:
+      const blob = new Blob([svgCanvas.getSerializedSvg()], { type: "image/svg" });
+      const fileLink = document.createElement('a');
+      fileLink.href = window.URL.createObjectURL(blob);
+      fileLink.download = "lambda-map.svg";
+      fileLink.click();
     });
 
     const examples = document.getElementById('examples')! as HTMLSelectElement;

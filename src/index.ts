@@ -440,6 +440,7 @@ class App {
 
     document.getElementById('clear')!.addEventListener('click', () => {
       clearCanvas();
+      this.invalidateSelectBox();
       this.compute();
     });
 

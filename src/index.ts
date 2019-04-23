@@ -291,6 +291,32 @@ function enabled(id: string): boolean {
   return (document.getElementById(id) as HTMLFormElement).checked;
 }
 
+function snapToColors(c: Canvas) {
+  const dat = c.d.getImageData(0, 0, c.c.width, c.c.height);
+  for (let x = 0; x < c.c.width; x++) {
+    for (let y = 0; y < c.c.height; y++) {
+      const ix = 4 * (c.c.width * y + x);
+      const [r, g, b] = [dat.data[ix], dat.data[ix + 1], dat.data[ix + 2]];
+      let ro = 255, go = 255, bo = 255;
+      if (r > g || b > g) {
+        if (r > b) {
+          go = 0;
+          bo = 0;
+        }
+        else {
+          ro = 0;
+          go = 0;
+        }
+      }
+      dat.data[ix] = ro;
+      dat.data[ix + 1] = go;
+      dat.data[ix + 2] = bo;
+      dat.data[ix + 3] = 255;
+    }
+  }
+  c.d.putImageData(dat, 0, 0);
+}
+
 class App {
   c1: Canvas;
   c2: Canvas;
@@ -335,10 +361,18 @@ class App {
     this.c2 = getCanvas('c2');
   }
 
+  getExamples(): HTMLSelectElement {
+    return document.getElementById('examples')! as HTMLSelectElement
+  }
+
+  invalidateSelectBox() {
+    this.getExamples().selectedIndex = -1; // drawing invalidates example selection
+  }
+
   paint(p: Point) {
     const { c1 } = this;
-    const examples = document.getElementById('examples')! as HTMLSelectElement;
-    examples.selectedIndex = -1; // drawing invalidates example selection
+    const examples = this.getExamples();
+    this.invalidateSelectBox();
     this.forceRoot = undefined;
 
     p = u.vint(p);
@@ -458,6 +492,9 @@ class App {
               im.addEventListener('load', () => {
                 clearCanvas();
                 c1.d.drawImage(im, Math.floor((c1.c.width - im.width) / 2), Math.floor((c1.c.height - im.height) / 2));
+
+                snapToColors(c1);
+                this.invalidateSelectBox();
                 this.compute();
               });
             }

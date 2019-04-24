@@ -318,6 +318,29 @@ function snapToColors(c: Canvas) {
   c.d.putImageData(dat, 0, 0);
 }
 
+function causeDownload(content: string, mimeType: string) {
+  // It would be nice if we had navigator.clipboard.write, but
+  // chrome hasn't implemented that yet.
+
+  const blob = new Blob([content], { type: mimeType });
+  const fileLink = document.createElement('a');
+  fileLink.href = window.URL.createObjectURL(blob);
+  fileLink.download = "lambda-map.svg";
+  if (document.createEvent) {
+    // This branch seems required in firefox. Empirically, calling
+    // .click() fires .onclick handler, but doesn't cause download
+    // if we just have an href set.
+    const event = document.createEvent("MouseEvents");
+    event.initMouseEvent("click", true, true, window,
+      0, 0, 0, 0, 0,
+      false, false, false, false,
+      0, null);
+    fileLink.dispatchEvent(event);
+  }
+  else {
+    fileLink.click();
+  }
+}
 class App {
   c1: Canvas;
   c2: Canvas;
@@ -445,15 +468,11 @@ class App {
     });
 
     document.getElementById('exportSvg')!.addEventListener('click', () => {
+      console.log('here');
       const svgCanvas = new SvgCanvas(c2.c.width, c2.c.height);
       this._compute(this.c1, { c: c2.c, d: svgCanvas });
-
-      // Since we don't have navigator.clipboard.write, I guess this will do:
-      const blob = new Blob([svgCanvas.getSerializedSvg()], { type: "image/svg" });
-      const fileLink = document.createElement('a');
-      fileLink.href = window.URL.createObjectURL(blob);
-      fileLink.download = "lambda-map.svg";
-      fileLink.click();
+      console.log(svgCanvas.getSerializedSvg().length);
+      causeDownload(svgCanvas.getSerializedSvg(), "image/svg");
     });
 
     const examples = document.getElementById('examples')! as HTMLSelectElement;

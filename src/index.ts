@@ -378,7 +378,6 @@ class App {
       }
       catch (e) {
         document.getElementById('lambda')!.innerHTML = '<font color="red">All nodes must have exactly three edges to compute lambda graph.</font>';
-        console.log(e);
         renderGraph(rg, c2);
       }
     }
@@ -468,10 +467,8 @@ class App {
     });
 
     document.getElementById('exportSvg')!.addEventListener('click', () => {
-      console.log('here');
       const svgCanvas = new SvgCanvas(c2.c.width, c2.c.height);
       this._compute(this.c1, { c: c2.c, d: svgCanvas });
-      console.log(svgCanvas.getSerializedSvg().length);
       causeDownload(svgCanvas.getSerializedSvg(), "image/svg");
     });
 

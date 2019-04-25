@@ -8,8 +8,12 @@ import * as u from './util';
 const SMOL_OFFSET = 12;
 
 // returns a tangent vector from an edge's endpoint to the interior of the edge
+// bear in mind that e.m is the 'midpoint' of the edge, and the quadratic
+// control point is actually
+// 2 * m - (a + b) / 2,
 export function edgeVelocity(vertices: Dict<Vertex>, e: Edge, side: 'a' | 'b'): Point {
-  return u.vnorm(u.vsub(e.m, vertices[e[side]].p));
+  const c = u.vmn([e.m, vertices[e.a].p, vertices[e.b].p], ([m, a, b]) => 2 * m - (a + b) / 2);
+  return u.vnorm(u.vsub(c, vertices[e[side]].p));
 }
 
 function angle(p: Point) {

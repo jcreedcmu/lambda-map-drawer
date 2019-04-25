@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite } from './graph';
+import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite, edgeVelocity } from './graph';
 import { Loader } from './loader';
 import { stringifyLam } from './stringifyLam';
 import {
@@ -84,8 +84,7 @@ function renderCyclicOrdering(g: GraphData, c: Canvas) {
     const colors = ["red", "green", "blue"];
     if (v.edges.length <= 3) {
       v.edges.forEach((e, i) => {
-        const m = g.edges[e.i].m;
-        const vec = u.vplus(u.vscale(u.vnorm(u.vsub(m, v.p)), 15), v.p);
+        const vec = u.vplus(v.p, u.vscale(edgeVelocity(g.vertices, g.edges[e.i], e.which), 15));
         d.beginPath();
         d.moveTo(v.p.x, v.p.y);
         d.lineTo(vec.x, vec.y);

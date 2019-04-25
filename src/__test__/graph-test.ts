@@ -11,8 +11,8 @@ const edge = { a: 'p', b: 'q', m: { x: 1, y: 1 } };
 
 describe('edgeVelocity', () => {
   it('should give sensible answers for a synthetic edge', () => {
-
-    expect(edgeVelocity(vertices, edge, 'a')).deep.equal(u.vnorm({ x: 1, y: 1 }));
-    expect(edgeVelocity(vertices, edge, 'b')).deep.equal(u.vnorm({ x: -2, y: -3 }));
+    // actual control point is located at (0.5, 0)
+    expect(edgeVelocity(vertices, edge, 'a')).deep.equal(u.vnorm({ x: 0.5, y: 0 }));
+    expect(edgeVelocity(vertices, edge, 'b')).deep.equal(u.vnorm({ x: -2.5, y: -4 }));
   });
 });

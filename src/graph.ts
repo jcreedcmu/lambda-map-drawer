@@ -8,7 +8,7 @@ import * as u from './util';
 const SMOL_OFFSET = 12;
 
 // returns a tangent vector from an edge's endpoint to the interior of the edge
-function edgeVelocity(vertices: Dict<Vertex>, e: Edge, side: 'a' | 'b'): Point {
+export function edgeVelocity(vertices: Dict<Vertex>, e: Edge, side: 'a' | 'b'): Point {
   return u.vnorm(u.vsub(e.m, vertices[e[side]].p));
 }
 

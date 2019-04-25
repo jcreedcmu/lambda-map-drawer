@@ -7,6 +7,15 @@ import * as u from './util';
 
 const SMOL_OFFSET = 12;
 
+// returns a tangent vector from an edge's endpoint to the interior of the edge
+function edgeVelocity(vertices: Dict<Vertex>, e: Edge, side: 'a' | 'b'): Point {
+  return u.vnorm(u.vsub(e.m, vertices[e[side]].p));
+}
+
+function angle(p: Point) {
+  return Math.atan2(p.x, p.y);
+}
+
 export function findGraph(conj: ConjoinedData): GraphData {
   const vertices: Dict<Vertex> = {};
   const edges: { a: string, m: Point, b: string }[] = [];
@@ -29,11 +38,10 @@ export function findGraph(conj: ConjoinedData): GraphData {
   });
 
   for (let v of Object.values(vertices)) {
-    v.edges.sort((a, b) => {
-      const am = edges[a.i].m;
-      const bm = edges[b.i].m;
-      return Math.atan2(am.x - v.p.x, am.y - v.p.y)
-        - Math.atan2(bm.x - v.p.x, bm.y - v.p.y);
+    v.edges.sort((es1, es2) => {
+      const v1 = edgeVelocity(vertices, edges[es1.i], es1.which);
+      const v2 = edgeVelocity(vertices, edges[es2.i], es2.which);
+      return angle(v1) - angle(v2);
     })
   }
   return { vertices, edges };

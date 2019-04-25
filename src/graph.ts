@@ -1,3 +1,8 @@
+import {
+  Point, Dict, Vertex, ConjoinedData, GraphData, Edge,
+  EdgeSpec, RootedGraphData, Exp, LambdaVertex, LambdaEdge, RootSpec, LambdaGraphData
+} from './types';
+
 import * as u from './util';
 
 const SMOL_OFFSET = 12;

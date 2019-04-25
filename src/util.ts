@@ -1,3 +1,5 @@
+import { Point } from './types';
+
 export function sqr(x: number) {
   return x * x;
 }

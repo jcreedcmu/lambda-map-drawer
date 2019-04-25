@@ -1,6 +1,11 @@
 import { findConjoined } from './conjoined';
-import { findGraph, findRootedGraph, findLambdaGraph, breakGraphAtEdge, opposite } from './graph';
+import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite } from './graph';
 import { Loader } from './loader';
+import { stringifyLam } from './stringifyLam';
+import {
+  Canvas, ConjoinedData, EdgeSpec, GraphData, LambdaGraphData, Point,
+  RootedGraphData, SizedArray, Tool
+} from './types';
 import * as u from './util';
 import SvgCanvas = require('canvas2svg');
 
@@ -175,49 +180,6 @@ function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Poi
   _drawArrowHead(d, m, Math.atan2(vb.y - va.y, vb.x - va.x));
 }
 
-type From = 'lam' | 'appl' | 'appr' | 'top';
-type StringifyRes = { s: string, counter: number };
-
-function findSplit(e: Exp): { e: ExpS, size: number } {
-  switch (e.t) {
-    case 'lam': {
-      const { e: e0, size: size0 } = findSplit(e.b);
-      return { e: { t: 'lam', b: e0 }, size: size0 - 1 };
-    }
-    case 'app': {
-      const { e: ef, size: sizef } = findSplit(e.f);
-      const { e: ea, size: sizea } = findSplit(e.arg);
-      return { e: { t: 'app', f: ef, arg: ea, split: sizef }, size: sizef + sizea };
-    }
-    case 'var': return { e, size: 1 };
-  }
-}
-
-function stringifyLam(counter: number, G: string[], e: ExpS, frm: From): StringifyRes {
-  switch (e.t) {
-    case 'lam': {
-      const v = String.fromCharCode(counter + 97);
-      const bind = frm == 'lam' ? '' : '\u03bb';
-      const res = stringifyLam(counter + 1, G.concat([v]), e.b, 'lam');
-      const rv = bind + v + res.s;
-      return {
-        s: (frm == 'lam' || frm == 'top') ? rv : '(' + rv + ')',
-        counter: res.counter,
-      };
-    }
-    case 'app': {
-      const pref = frm == 'lam' ? '.' : '';
-      const res1 = stringifyLam(counter, G.slice(0, e.split), e.f, 'appl');
-      const res2 = stringifyLam(res1.counter, G.slice(e.split), e.arg, 'appr');
-      const rv = (pref + res1.s + ' ' + res2.s);
-      return {
-        s: frm == 'appr' ? '(' + rv + ')' : rv,
-        counter: res2.counter
-      };
-    }
-    case 'var': return { s: G[0], counter };
-  }
-}
 
 function circlePath(p: Point, rad: number): Path2D {
   const pp = new Path2D();
@@ -285,7 +247,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     }
   }
 
-  document.getElementById('lambda')!.innerText = stringifyLam(0, [], findSplit(g.exp).e, 'top').s;
+  document.getElementById('lambda')!.innerText = stringifyLam(g.exp);
 }
 
 function enabled(id: string): boolean {

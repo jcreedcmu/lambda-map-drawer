@@ -1,3 +1,5 @@
+import { Color, SizedArray, ConjoinedData, MarkType, Dict, Point } from './types';
+
 const white: Color = { r: 255, g: 255, b: 255 };
 const red: Color = { r: 255, g: 0, b: 0 };
 const blue: Color = { r: 0, g: 0, b: 255 };

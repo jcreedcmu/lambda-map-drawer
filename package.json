@@ -5,16 +5,25 @@
   "license": "MIT",
   "scripts": {
     "build": "webpack --mode production",
-    "watch": "webpack-dev-server"
+    "watch": "webpack-dev-server",
+    "test": "mocha -r ts-node/register src/__test__/*.ts"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.13.7",
+    "chai": "^4.2.0",
+    "fast-png": "^4.0.1",
+    "mocha": "^6.1.4",
     "ts-loader": "^5.3.3",
+    "ts-node": "^8.1.0",
     "typescript": "^3.4.4",
     "webpack": "^4.30.0",
     "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.3.1"
   },
   "dependencies": {
+    "canvas": "^2.4.1",
     "canvas2svg": "^1.0.16"
   }
 }

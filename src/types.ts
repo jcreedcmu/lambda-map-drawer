@@ -73,3 +73,5 @@ export type LambdaGraphData = {
 }
 
 export type RootSpec = { p: Point, es: EdgeSpec };
+
+export const phonyValue = 0;

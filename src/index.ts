@@ -514,3 +514,6 @@ l.image('./img/prism.png', 'prism');
 l.image('./img/tetrahedron.png', 'tetrahedron');
 l.image('./img/tutte.png', 'tutte');
 l.done(() => app.go());
+
+import { phonyValue as importedValue } from './types';
+const phonyValue = importedValue;

@@ -21,6 +21,14 @@ export type Edge = {
   m: Point, // center of gravity of edge
 }
 
+type EdgeSegment = string;
+
+export type MultiEdge = {
+  a: string,  // vertex id
+  b: string,
+  segs: EdgeSegment[],
+}
+
 export type EdgeSpec = {
   i: number,
   which: 'a' | 'b'
@@ -32,9 +40,9 @@ export type Vertex = {
   edges: EdgeSpec[],
 }
 
-export type GraphData = {
+export type GraphData<E> = {
   vertices: Dict<Vertex>,
-  edges: Edge[],
+  edges: E[],
 }
 
 export type RootData = {
@@ -44,11 +52,11 @@ export type RootData = {
   brokenEdge: EdgeSpec, // edge of the original graph that was broken
 }
 
-export type RootedGraphData = GraphData & { rootData: RootData }
+export type RootedGraphData<E> = GraphData<E> & { rootData: RootData }
 
 export type NodeType = 'app' | 'lam';
 export type LambdaVertex = Vertex & { t: NodeType };
-export type LambdaEdge = Edge & { tgt: 'a' | 'b' };
+export type LambdaEdge<E> = E & { tgt: 'a' | 'b' };
 
 export type Exp =
   | { t: 'var' }
@@ -65,9 +73,9 @@ export type ExpS =
     split: number // how many variables go to the f side
   };
 
-export type LambdaGraphData = {
+export type LambdaGraphData<E> = {
   vertices: Dict<LambdaVertex>,
-  edges: LambdaEdge[],
+  edges: LambdaEdge<E>[],
   rootData: RootData,
   exp: Exp,
 }

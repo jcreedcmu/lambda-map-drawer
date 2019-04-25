@@ -3,7 +3,7 @@ import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite
 import { Loader } from './loader';
 import { stringifyLam } from './stringifyLam';
 import {
-  Canvas, ConjoinedData, EdgeSpec, GraphData, LambdaGraphData, Point,
+  Canvas, ConjoinedData, Edge, EdgeSpec, GraphData, LambdaGraphData, Point,
   RootedGraphData, SizedArray, Tool
 } from './types';
 import * as u from './util';
@@ -78,7 +78,7 @@ function renderDebug(conj: ConjoinedData, c2: Canvas) {
 
 
 
-function renderCyclicOrdering(g: GraphData, c: Canvas) {
+function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
   const { d } = c;
   for (const v of Object.values(g.vertices)) {
     const colors = ["red", "green", "blue"];
@@ -97,7 +97,7 @@ function renderCyclicOrdering(g: GraphData, c: Canvas) {
   }
 }
 
-function renderGraph(g: RootedGraphData, c: Canvas) {
+function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
   const { d } = c
 
   g.edges.forEach(({ a, b, m }, i) => {
@@ -195,7 +195,7 @@ function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
   d.stroke(pp);
 }
 
-function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
+function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
   const { d } = c
   g.edges.forEach((e) => {
     if (e == undefined) return;
@@ -306,9 +306,9 @@ class App {
   c1: Canvas;
   c2: Canvas;
   conj?: ConjoinedData;
-  graph?: GraphData;
-  rootedGraph?: RootedGraphData;
-  lambdaGraph?: LambdaGraphData;
+  graph?: GraphData<Edge>;
+  rootedGraph?: RootedGraphData<Edge>;
+  lambdaGraph?: LambdaGraphData<Edge>;
   forceRoot: EdgeSpec | undefined;
 
   compute() {

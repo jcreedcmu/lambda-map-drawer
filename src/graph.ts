@@ -22,7 +22,7 @@ function angle(p: Point) {
 
 export function findGraph(conj: ConjoinedData): GraphData<Edge> {
   const vertices: Dict<Vertex> = {};
-  const edges: { a: string, m: Point, b: string }[] = [];
+  const edges: Edge[] = [];
 
   for (let i = 1; i < conj.numMarks + 1; i++) {
     if (conj.marks[i] == 'node') {
@@ -31,7 +31,7 @@ export function findGraph(conj: ConjoinedData): GraphData<Edge> {
     else if (conj.marks[i] == 'edge') {
       const adj = Object.keys(conj.adjacent[i]);
       if (adj.length == 2) {
-        edges.push({ a: adj[0], b: adj[1], m: conj.avg[i] });
+        edges.push(new Edge(adj[0], adj[1], conj.avg[i]));
       }
     }
   }
@@ -77,9 +77,7 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   g.edges[idBrk][which1] = id3;
   g.edges[idBrk].m = u.vavg(v2.p, m);
 
-  const newEdge: Edge = {
-    a: '', b: '', m: u.vavg(m, v1.p)
-  };
+  const newEdge: Edge = new Edge('', '', u.vavg(m, v1.p));
   newEdge[which2] = id3;
   newEdge[which1] = id1;
   const edges = g.edges.concat([newEdge]);

@@ -16,6 +16,11 @@ export function edgeVelocity(vertices: Dict<Vertex>, e: Edge, side: 'a' | 'b'): 
   return u.vnorm(u.vsub(c, vertices[e[side]].p));
 }
 
+// assumed from a to b
+export function midAngle(vertices: Dict<Vertex>, e: Edge, target: 'a' | 'b'): number {
+  return (target == 'a' ? 0.5 : 1.5) * Math.PI - angle(u.vsub(vertices[e.a].p, vertices[e.b].p));
+}
+
 function angle(p: Point) {
   return Math.atan2(p.x, p.y);
 }
@@ -86,7 +91,7 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   const newEdge: Edge = new Edge('', '', u.vavg(m, v1.p));
   newEdge[which2] = id3;
   newEdge[which1] = id1;
-  const edges = u.clone(g.edges);
+  const edges = Object.assign({}, g.edges);
   edges[idNew] = newEdge;
 
   const rootEdges: EdgeSpec[] =
@@ -164,11 +169,11 @@ export function findLambdaGraph(g: RootedGraphData<Edge>): LambdaGraphData<Edge>
   }
 
   function awayFromMe(edge: EdgeSpec) {
-    edges[edge.i] = { ...g.edges[edge.i], tgt: opposite(edge.which) };
+    edges[edge.i] = { e: g.edges[edge.i], tgt: opposite(edge.which) };
   }
 
   function towardMe(edge: EdgeSpec) {
-    edges[edge.i] = { ...g.edges[edge.i], tgt: edge.which };
+    edges[edge.i] = { e: g.edges[edge.i], tgt: edge.which };
   }
 
   function process(vid: string, incoming: EdgeSpec): Exp {

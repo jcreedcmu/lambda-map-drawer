@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite, edgeVelocity } from './graph';
+import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite, edgeVelocity, midAngle } from './graph';
 import { Loader } from './loader';
 import { stringifyLam } from './stringifyLam';
 import {
@@ -29,7 +29,6 @@ function getCanvas(id: string): Canvas {
   d.fillRect(0, 0, 500, 500);
   return { c, d };
 }
-
 
 function currentTool(): Tool {
   return (Array.from(document.getElementsByName('paint')) as HTMLFormElement[])
@@ -76,8 +75,6 @@ function renderDebug(conj: ConjoinedData, c2: Canvas) {
   });
 }
 
-
-
 function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
   const { d } = c;
   for (const v of Object.values(g.vertices)) {
@@ -100,15 +97,10 @@ function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
 function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
   const { d } = c
 
-  for (const [i, { a, b, m }] of Object.entries(g.edges)) {
-    const va = g.vertices[a].p;
-    const vb = g.vertices[b].p;
+  for (const [i, e] of Object.entries(g.edges)) {
+    const { a, b, m } = e;
     d.beginPath();
-    d.moveTo(va.x, va.y);
-    d.quadraticCurveTo(
-      2 * m.x - (va.x + vb.x) / 2,
-      2 * m.y - (va.y + vb.y) / 2,
-      vb.x, vb.y);
+    e.draw(g.vertices, d);
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.stroke();
@@ -158,10 +150,7 @@ function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
   }
 }
 
-function _drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
-  d.strokeStyle = "black";
-  d.lineWidth = 1;
-  d.stroke();
+function drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
   d.save();
   d.translate(p.x, p.y);
   d.rotate(angle);
@@ -174,11 +163,6 @@ function _drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
   d.fill();
   d.restore();
 }
-
-function drawArrowHead(d: CanvasRenderingContext2D, m: Point, va: Point, vb: Point) {
-  _drawArrowHead(d, m, Math.atan2(vb.y - va.y, vb.x - va.x));
-}
-
 
 function circlePath(p: Point, rad: number): Path2D {
   const pp = new Path2D();
@@ -197,23 +181,20 @@ function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
 
 function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
   const { d } = c
-  for (const e of Object.values(g.edges)) {
-    if (e == undefined) return;
-    const { a, b, m, tgt } = e;
+  for (const edge of Object.values(g.edges)) {
+    if (edge == undefined) return;
+    const { e, tgt } = edge;
+    const { a, b, m } = e;
     if (g.vertices[a] == undefined) return;
     if (g.vertices[b] == undefined) return;
     const va = g.vertices[a].p;
     const vb = g.vertices[b].p;
     d.beginPath();
-    d.moveTo(va.x, va.y);
-    d.quadraticCurveTo(
-      2 * m.x - (va.x + vb.x) / 2,
-      2 * m.y - (va.y + vb.y) / 2,
-      vb.x, vb.y);
-    if (tgt == 'b')
-      drawArrowHead(d, m, va, vb);
-    else
-      drawArrowHead(d, m, vb, va);
+    e.draw(g.vertices, d);
+    d.strokeStyle = "black";
+    d.lineWidth = 1;
+    d.stroke();
+    drawArrowHead(d, m, midAngle(g.vertices, edge.e, tgt));
   }
 
   // Draw root edge
@@ -226,7 +207,7 @@ function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
   d.strokeStyle = "black";
   d.lineWidth = 1;
   d.stroke();
-  _drawArrowHead(d, vs, Math.atan2(g.rootData.rootDir.y, g.rootData.rootDir.x));
+  drawArrowHead(d, vs, Math.atan2(g.rootData.rootDir.y, g.rootData.rootDir.x));
 
   for (let [k, v] of Object.entries(g.vertices)) {
     if (v == undefined) return;

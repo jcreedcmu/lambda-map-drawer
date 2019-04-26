@@ -55,7 +55,3 @@ export function vint(a: Point): Point {
 export function vrot90(a: Point): Point {
   return { x: a.y, y: -a.x };
 }
-
-export function clone<T>(x: T): T {
-  return JSON.parse(JSON.stringify(x));
-}

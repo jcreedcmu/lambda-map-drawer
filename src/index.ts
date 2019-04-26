@@ -100,7 +100,7 @@ function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
 function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
   const { d } = c
 
-  g.edges.forEach(({ a, b, m }, i) => {
+  for (const [i, { a, b, m }] of Object.entries(g.edges)) {
     const va = g.vertices[a].p;
     const vb = g.vertices[b].p;
     d.beginPath();
@@ -124,7 +124,7 @@ function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
       d.fillStyle = '#404';
       d.fillText(i + '', m.x, m.y);
     }
-  });
+  }
   for (let [k, { p }] of Object.entries(g.vertices)) {
     d.fillStyle = "#fed";
 
@@ -197,7 +197,7 @@ function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
 
 function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
   const { d } = c
-  g.edges.forEach((e) => {
+  for (const e of Object.values(g.edges)) {
     if (e == undefined) return;
     const { a, b, m, tgt } = e;
     if (g.vertices[a] == undefined) return;
@@ -214,7 +214,7 @@ function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
       drawArrowHead(d, m, va, vb);
     else
       drawArrowHead(d, m, vb, va);
-  });
+  }
 
   // Draw root edge
   const vr = g.vertices[g.rootData.root].p;

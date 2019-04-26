@@ -22,7 +22,7 @@ function angle(p: Point) {
 
 export function findGraph(conj: ConjoinedData): GraphData<Edge> {
   const vertices: Dict<Vertex> = {};
-  const edges: Edge[] = [];
+  const edgeArr: Edge[] = [];
 
   for (let i = 1; i < conj.numMarks + 1; i++) {
     if (conj.marks[i] == 'node') {
@@ -31,15 +31,20 @@ export function findGraph(conj: ConjoinedData): GraphData<Edge> {
     else if (conj.marks[i] == 'edge') {
       const adj = Object.keys(conj.adjacent[i]);
       if (adj.length == 2) {
-        edges.push(new Edge(adj[0], adj[1], conj.avg[i]));
+        edgeArr.push(new Edge(adj[0], adj[1], conj.avg[i]));
       }
     }
   }
 
-  edges.forEach((e, i) => {
-    vertices[e.a].edges.push({ i, which: 'a' });
-    vertices[e.b].edges.push({ i, which: 'b' });
+  edgeArr.forEach((e, i) => {
+    vertices[e.a].edges.push({ i: i + '', which: 'a' });
+    vertices[e.b].edges.push({ i: i + '', which: 'b' });
   });
+
+  const edges: Dict<Edge> = {};
+  for (let [i, e] of edgeArr.entries()) {
+    edges[i] = e;
+  }
 
   for (let v of Object.values(vertices)) {
     v.edges.sort((es1, es2) => {
@@ -48,7 +53,8 @@ export function findGraph(conj: ConjoinedData): GraphData<Edge> {
       return angle(v1) - angle(v2);
     })
   }
-  return { vertices, edges };
+
+  return { vertices, edges, nextEdge: edgeArr.length };
 }
 
 export function opposite(x: 'a' | 'b'): ('a' | 'b') {
@@ -66,7 +72,7 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   const id2 = eBrk[which2];
   const v2 = g.vertices[id2];
 
-  const idNew = g.edges.length;
+  const idNew = g.nextEdge + '';
   const id3 = '*';
   // v2 (which2) .... m .... (which1) v1
   //                idBrk
@@ -80,7 +86,8 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   const newEdge: Edge = new Edge('', '', u.vavg(m, v1.p));
   newEdge[which2] = id3;
   newEdge[which1] = id1;
-  const edges = g.edges.concat([newEdge]);
+  const edges = u.clone(g.edges);
+  edges[idNew] = newEdge;
 
   const rootEdges: EdgeSpec[] =
     [{ i: idBrk, which: which1 }, { i: idNew, which: which2 }];
@@ -97,19 +104,24 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   vertices[id3] = { p: m, edges: rootEdges };
 
   const otherRoots: RootSpec[] = [];
-  g.edges.forEach((e, i) => {
+  for (const [i, e] of Object.entries(g.edges)) {
     if (i == esBrk.i)
-      return;
+      continue;
     const va = g.vertices[e.a].p;
     const vb = g.vertices[e.b].p;
     const off = u.vrot90(u.vscale(u.vnorm(u.vsub(va, vb)), SMOL_OFFSET));
 
     otherRoots.push({ p: u.vplus(e.m, off), es: { i, which: 'a' } });
     otherRoots.push({ p: u.vsub(e.m, off), es: { i, which: 'b' } });
-  });
+  }
 
   const rootDir = u.vrot90(u.vnorm(u.vsub(v1.p, v2.p)));
-  return { edges, vertices, rootData: { root: id3, otherRoots, rootDir, brokenEdge: esBrk } };
+  return {
+    edges,
+    vertices,
+    nextEdge: g.nextEdge + 1,
+    rootData: { root: id3, otherRoots, rootDir, brokenEdge: esBrk }
+  };
 }
 
 export function findRootedGraph(g: GraphData<Edge>): RootedGraphData<Edge> {
@@ -206,7 +218,7 @@ export function findLambdaGraph(g: RootedGraphData<Edge>): LambdaGraphData<Edge>
 
   let limit = 100;
   const vertices: Dict<LambdaVertex> = {};
-  const edges: LambdaEdge<Edge>[] = [];
+  const edges: Dict<LambdaEdge<Edge>> = {};
   let vid = g.rootData.root;
   let vert = g.vertices[vid];
   const leftEdge = vert.edges[0];

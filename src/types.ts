@@ -38,7 +38,7 @@ export type MultiEdge = {
 }
 
 export type EdgeSpec = {
-  i: number,
+  i: string
   which: 'a' | 'b'
 };
 
@@ -50,7 +50,8 @@ export type Vertex = {
 
 export type GraphData<E> = {
   vertices: Dict<Vertex>,
-  edges: E[],
+  edges: Dict<E>,
+  nextEdge: number,
 }
 
 export type RootData = {
@@ -83,7 +84,7 @@ export type ExpS =
 
 export type LambdaGraphData<E> = {
   vertices: Dict<LambdaVertex>,
-  edges: LambdaEdge<E>[],
+  edges: Dict<LambdaEdge<E>>,
   rootData: RootData,
   exp: Exp,
 }

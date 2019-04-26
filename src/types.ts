@@ -19,13 +19,11 @@ export class Edge {
   a: string; // vertex id
   b: string;
   m: Point; // center of gravity of edge
-  _priv: number;
 
   constructor(a: string, b: string, m: Point) {
     this.a = a;
     this.b = b;
     this.m = m;
-    this._priv = 3;
   }
 }
 

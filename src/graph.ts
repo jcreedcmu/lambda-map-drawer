@@ -55,32 +55,39 @@ export function coalesceGraph(g: GraphData): GraphData {
   let nextEdge = g.nextEdge;
   const vertices = u.shallowClone(g.vertices);
   const edges = u.shallowClone(g.edges);
+
+  function mergeEdges(es1: EdgeSpec, es2: EdgeSpec) {
+    const e1 = edges[es1.i];
+    const e2 = edges[es2.i];
+    const v1id = e1[opposite(es1.which)];
+    const v2id = e2[opposite(es2.which)];
+    const oldv1 = vertices[v1id];
+    const oldv2 = vertices[v2id];
+
+    // these two edges are now oriented like
+    // v1 [a]--------[b] vm [a]-----------[b] v2
+    const ee1 = es1.which == 'b' ? e1 : e1.reverse();
+    const ee2 = es2.which == 'a' ? e2 : e2.reverse();
+
+    const idNew = nextEdge++ + '';
+    vertices[v1id] = replaceEdge(oldv1, es1.i, idNew, 'a');
+    vertices[v2id] = replaceEdge(oldv2, es2.i, idNew, 'b');
+    edges[idNew] = new MultiEdge(ee1, ee2);
+
+    delete edges[es1.i];
+    delete edges[es2.i];
+  }
+
   for (const vmid of Object.keys(g.vertices)) {
     const vm = vertices[vmid];
     if (vm.edges.length == 2) {
-      const es1 = vm.edges[0];
-      const es2 = vm.edges[1];
-      const e1 = edges[es1.i];
-      const e2 = edges[es2.i];
-      const v1id = e1[opposite(es1.which)];
-      const v2id = e2[opposite(es2.which)];
-      const oldv1 = vertices[v1id];
-      const oldv2 = vertices[v2id];
-
-      // these two edges are now oriented like
-      // v1 [a]--------[b] vm [a]-----------[b] v2
-      const ee1 = es1.which == 'b' ? e1 : e1.reverse();
-      const ee2 = es2.which == 'a' ? e2 : e2.reverse();
-
-      const idNew = nextEdge++ + '';
-      vertices[v1id] = replaceEdge(oldv1, es1.i, idNew, 'a');
-      vertices[v2id] = replaceEdge(oldv2, es2.i, idNew, 'b');
-      edges[idNew] = new MultiEdge(ee1, ee2);
-
       delete vertices[vmid];
-      delete edges[es1.i];
-      delete edges[es2.i];
-
+      mergeEdges(vm.edges[0], vm.edges[1]);
+    }
+    else if (vm.edges.length == 4) {
+      delete vertices[vmid];
+      mergeEdges(vm.edges[0], vm.edges[2]);
+      mergeEdges(vm.edges[1], vm.edges[3]);
     }
   }
   return { vertices, edges, nextEdge };

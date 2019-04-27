@@ -1,9 +1,10 @@
+import { Edge } from './edge';
 import {
-  Point, Dict, Vertex, ConjoinedData, GraphData, Edge,
-  EdgeSpec, RootedGraphData, Exp, LambdaVertex, LambdaEdge, RootSpec, LambdaGraphData
+  ConjoinedData, Dict, EdgeSpec, Exp, GraphData, LambdaEdge,
+  LambdaGraphData, LambdaVertex, RootedGraphData, RootSpec, Vertex
 } from './types';
-
 import * as u from './util';
+
 
 export function findGraph(conj: ConjoinedData): GraphData<Edge> {
   const vertices: Dict<Vertex> = {};

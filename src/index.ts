@@ -3,11 +3,12 @@ import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite
 import { Loader } from './loader';
 import { stringifyLam } from './stringifyLam';
 import {
-  Canvas, ConjoinedData, Edge, EdgeSpec, GraphData, LambdaGraphData, Point,
+  Canvas, ConjoinedData, EdgeSpec, GraphData, LambdaGraphData, Point,
   RootedGraphData, SizedArray, Tool
 } from './types';
 import * as u from './util';
 import SvgCanvas = require('canvas2svg');
+import { Edge } from './edge';
 
 const WIDTH = 16;
 const EDGE_RAD = 7;

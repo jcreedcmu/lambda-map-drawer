@@ -55,7 +55,8 @@ export function coalesceGraph(g: GraphData): GraphData {
   let nextEdge = g.nextEdge;
   const vertices = u.shallowClone(g.vertices);
   const edges = u.shallowClone(g.edges);
-  for (const [vmid, vm] of Object.entries(g.vertices)) {
+  for (const vmid of Object.keys(g.vertices)) {
+    const vm = vertices[vmid];
     if (vm.edges.length == 2) {
       const es1 = vm.edges[0];
       const es2 = vm.edges[1];

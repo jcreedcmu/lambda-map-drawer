@@ -85,6 +85,10 @@ const imgTests =
   {
     imgName: 'twoDegree2.png',
     term: '/ab.a b',
+  },
+  {
+    imgName: 'virtual.png',
+    term: '/abcde.a (b d e) c',
   }];
 
 describe('lambda graph computation', () => {

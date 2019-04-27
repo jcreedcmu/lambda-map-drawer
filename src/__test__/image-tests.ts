@@ -73,6 +73,10 @@ const imgTests =
   {
     imgName: 'dodecahedron.png',
     term: '/abcde.a (/fg.b (/h.c (/i.d (/j.e (f (/k.g (h (i (j k)))))))))',
+  },
+  {
+    imgName: 'degree2.png',
+    term: '/ab.a b',
   }];
 
 describe('lambda graph computation', () => {

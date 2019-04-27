@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite } from './graph';
+import { breakGraphAtEdge, findGraph, coalesceGraph, findLambdaGraph, findRootedGraph, opposite } from './graph';
 import { Loader } from './loader';
 import { stringifyLam } from './stringifyLam';
 import {
@@ -294,6 +294,7 @@ class App {
   c2: Canvas;
   conj?: ConjoinedData;
   graph?: GraphData;
+  coalescedGraph?: GraphData;
   rootedGraph?: RootedGraphData;
   lambdaGraph?: LambdaGraphData;
   forceRoot: EdgeSpec | undefined;
@@ -306,6 +307,7 @@ class App {
   _compute(c1: Canvas, c2: Canvas) {
     this.conj = undefined;
     this.graph = undefined;
+    this.coalescedGraph = undefined;
     this.rootedGraph = undefined;
     this.lambdaGraph = undefined;
 
@@ -315,7 +317,8 @@ class App {
     const conj = this.conj = findConjoined(dat);
     if (enabled('renderDebug')) renderDebug(conj, c2);
     const g = this.graph = findGraph(conj);
-    const rg = this.rootedGraph = this.forceRoot ? breakGraphAtEdge(g, this.forceRoot) : findRootedGraph(g);
+    const cg = this.coalescedGraph = coalesceGraph(g);
+    const rg = this.rootedGraph = this.forceRoot ? breakGraphAtEdge(cg, this.forceRoot) : findRootedGraph(cg);
     if (enabled('renderCyclic')) renderCyclicOrdering(rg, c2);
     if (enabled('renderGraph')) renderGraph(rg, c2);
 

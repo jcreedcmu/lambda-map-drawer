@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Edge } from '../types';
+import { Edge } from '../edge';
 import * as u from '../util';
 
 const vertices = {

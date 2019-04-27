@@ -23,7 +23,7 @@ export interface ContextLike {
   quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void;
 }
 
-export type Arrowhead = { p: Point, angle: number };
+export type Arrowhead = { p: Point, theta: number };
 export type RootSpec = { p: Point, es: EdgeSpec };
 
 
@@ -79,6 +79,9 @@ export type LambdaGraphData = {
   exp: Exp,
 }
 
-
+// This is purely geometric data about where points are in space, and
+// forgets the identity of vertices in the graph. We need to remember
+// that elsewhere when dealing with this data.
+export type EdgeSegment = { va: Point, vb: Point, m: Point };
 
 export const phonyValue = 0;

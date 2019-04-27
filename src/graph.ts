@@ -1,4 +1,4 @@
-import { PreEdge, Edge } from './edge';
+import { PreEdge, Edge, OneEdge } from './edge';
 import {
   ConjoinedData, Dict, EdgeSpec, Exp, GraphData, LambdaEdge,
   LambdaGraphData, LambdaVertex, RootedGraphData, RootSpec, Vertex
@@ -29,7 +29,7 @@ export function findGraph(conj: ConjoinedData): GraphData {
 
   const edges: Dict<Edge> = {};
   for (let [i, e] of preEdges.entries()) {
-    edges[i] = new Edge(vertices, e);
+    edges[i] = new OneEdge(vertices, e);
   }
 
   for (let v of Object.values(vertices)) {
@@ -87,17 +87,17 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
 
   ////// 2. deal with edges
   if (which2 == 'a') {
-    g.edges[idBrk] = new Edge(vertices, { a: id2, b: id3, m: u.vavg(v2.p, m) });
+    g.edges[idBrk] = new OneEdge(vertices, { a: id2, b: id3, m: u.vavg(v2.p, m) });
   }
   else {
-    g.edges[idBrk] = new Edge(vertices, { a: id3, b: id2, m: u.vavg(v2.p, m) });
+    g.edges[idBrk] = new OneEdge(vertices, { a: id3, b: id2, m: u.vavg(v2.p, m) });
   }
 
   const newEdge: PreEdge = { a: '', b: '', m: u.vavg(m, v1.p) };
   newEdge[which2] = id3;
   newEdge[which1] = id1;
   const edges = Object.assign({}, g.edges);
-  edges[idNew] = new Edge(vertices, newEdge);
+  edges[idNew] = new OneEdge(vertices, newEdge);
 
 
   const otherRoots: RootSpec[] = [];

@@ -199,7 +199,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.lineWidth = 1;
     d.stroke();
     e.getArrowHeads(tgt).forEach(ah => {
-      drawArrowHead(d, ah.p, ah.angle);
+      drawArrowHead(d, ah.p, ah.theta);
     });
   }
 

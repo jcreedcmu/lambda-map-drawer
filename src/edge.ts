@@ -3,15 +3,26 @@ import * as u from './util';
 
 const SMOL_OFFSET = 12;
 
+export type PreEdge = {
+  a: string, // vertex id
+  b: string,
+  m: Point, // center of gravity of edge
+}
+
 export class Edge {
   a: string; // vertex id
   b: string;
+  va: Point; // actual location of vertex
+  vb: Point;
   private m: Point; // center of gravity of edge
 
-  constructor(a: string, b: string, m: Point) {
-    this.a = a;
-    this.b = b;
-    this.m = m;
+  constructor(vertices: Dict<Vertex>, pe: PreEdge) {
+    this.a = pe.a;
+    this.b = pe.b;
+    this.m = pe.m;
+
+    this.va = vertices[pe.a].p;
+    this.vb = vertices[pe.b].p;
   }
 
   draw(vs: Dict<Vertex>, d: ContextLike): void {

@@ -27,14 +27,6 @@ export type Arrowhead = { p: Point, angle: number };
 export type RootSpec = { p: Point, es: EdgeSpec };
 
 
-type EdgeSegment = string;
-
-export type MultiEdge = {
-  a: string,  // vertex id
-  b: string,
-  segs: EdgeSegment[],
-}
-
 export type EdgeSpec = {
   i: string
   which: 'a' | 'b'

@@ -6,7 +6,7 @@ const vertices = {
   p: { p: { x: 0, y: 0 }, edges: [] },
   q: { p: { x: 3, y: 4 }, edges: [] }
 };
-const edge = new Edge('p', 'q', { x: 1, y: 1 });
+const edge = new Edge(vertices, { a: 'p', b: 'q', m: { x: 1, y: 1 } });
 
 describe('edge.getVelocity', () => {
   it('should give sensible answers for a synthetic edge', () => {

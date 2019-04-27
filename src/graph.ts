@@ -127,10 +127,10 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
 
   ////// 2. deal with edges
   if (which2 == 'a') {
-    g.edges[idBrk] = new OneEdge(vertices, { a: id2, b: id3, m: u.vavg(v2.p, m) });
+    edges[idBrk] = new OneEdge(vertices, { a: id2, b: id3, m: u.vavg(v2.p, m) });
   }
   else {
-    g.edges[idBrk] = new OneEdge(vertices, { a: id3, b: id2, m: u.vavg(v2.p, m) });
+    edges[idBrk] = new OneEdge(vertices, { a: id3, b: id2, m: u.vavg(v2.p, m) });
   }
 
   const newEdge: PreEdge = { a: '', b: '', m: u.vavg(m, v1.p) };

@@ -2,6 +2,8 @@ import { Arrowhead, ContextLike, Dict, EdgeSegment, Point, RootSpec, Vertex } fr
 import * as u from './util';
 
 const SMOL_OFFSET = 12;
+const TENSION1 = 1;
+const TENSION2 = 0.5;
 
 type Cubic = { A: Point, B: Point, C: Point, D: Point };
 
@@ -147,9 +149,45 @@ class MultiEdgeRaw implements Edge {
 
   getCubics(): Cubic[] {
     const rv: Cubic[] = [];
-    this.segs.forEach((seg, i) => {
-      rv.push({ A: seg.va, B: seg.m, C: seg.m, D: seg.vb });
-    });
+
+    const cubic: (seg: EdgeSegment, i: number) => Cubic = (seg, i) => {
+      const A = seg.va;
+      const D = seg.vb;
+      if (this.segs.length > 1) {
+        if (i == 0) {
+          // If we're at the start of a multiedge, we want a cubic bezier that
+          // goes through seg.m, and has a chosen velocity at D = seg.vb. That
+          // velocity is TENSION * (Dnext - A).
+          const C = u.vmn([D, A, this.segs[i + 1].vb], ([D, A, Dnext]) => D - TENSION1 * (Dnext - A) / 3);
+          const B = u.vmn([seg.m, D, A, C], ([M, D, A, C]) => (8 * M - D - A - 3 * C) / 3);
+          return { A, B, C, D };
+        }
+        if (i == this.segs.length - 1) {
+          // If we're at the end of a multiedge, we want a cubic bezier that
+          // goes through seg.m, and has a chosen velocity at A = seg.va. That
+          // velocity is TENSION * (D - Aprev).
+          const B = u.vmn([D, A, this.segs[i - 1].va], ([D, A, Aprev]) => A + TENSION1 * (D - Aprev) / 3);
+          const C = u.vmn([seg.m, D, A, B], ([M, D, A, B]) => (8 * M - D - A - 3 * B) / 3);
+          return { A, B, C, D };
+        }
+        else {
+          // If we're in the middle of a multiedge, we want a cubic
+          // bezier that has velocity TENSION * (Dnext - A) at D, and
+          // velocity TENSION * (D - Aprev) at A.
+          const C = u.vmn([D, A, this.segs[i + 1].vb], ([D, A, Dnext]) => D - TENSION2 * (Dnext - A) / 3);
+          const B = u.vmn([D, A, this.segs[i - 1].va], ([D, A, Aprev]) => A + TENSION2 * (D - Aprev) / 3);
+          return { A, B, C, D };
+        }
+      }
+      else {
+        // This case shouldn't really happen but I'm leaving it in anyway for now...
+        const B = seg.m;
+        const C = seg.m;
+        return { A, B, C, D };
+      }
+    }
+
+    this.segs.forEach((seg, i) => rv.push(cubic(seg, i)));
     return rv;
   }
 

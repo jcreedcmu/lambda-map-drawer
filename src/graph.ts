@@ -1,10 +1,18 @@
-import { PreEdge, Edge, OneEdge } from './edge';
+import { PreEdge, Edge, OneEdge, MultiEdge } from './edge';
 import {
   ConjoinedData, Dict, EdgeSpec, Exp, GraphData, LambdaEdge,
   LambdaGraphData, LambdaVertex, RootedGraphData, RootSpec, Vertex
 } from './types';
 import * as u from './util';
 
+export function opposite(x: 'a' | 'b'): ('a' | 'b') {
+  return x == 'a' ? 'b' : 'a';
+}
+
+// gives the vertex id on the *other* side of es
+function across(g: GraphData, es: EdgeSpec): string {
+  return g.edges[es.i][opposite(es.which)];
+}
 
 export function findGraph(conj: ConjoinedData): GraphData {
   const vertices: Dict<Vertex> = {};
@@ -43,10 +51,48 @@ export function findGraph(conj: ConjoinedData): GraphData {
   return { vertices, edges, nextEdge: preEdges.length };
 }
 
-export function opposite(x: 'a' | 'b'): ('a' | 'b') {
-  return x == 'a' ? 'b' : 'a';
+export function coalesceGraph(g: GraphData): GraphData {
+  let nextEdge = g.nextEdge;
+  const vertices = u.shallowClone(g.vertices);
+  const edges = u.shallowClone(g.edges);
+  for (const [vmid, vm] of Object.entries(g.vertices)) {
+    if (vm.edges.length == 2) {
+      const es1 = vm.edges[0];
+      const es2 = vm.edges[1];
+      const e1 = edges[es1.i];
+      const e2 = edges[es2.i];
+      const v1id = e1[opposite(es1.which)];
+      const v2id = e2[opposite(es2.which)];
+      const oldv1 = vertices[v1id];
+      const oldv2 = vertices[v2id];
+
+      // these two edges are now oriented like
+      // v1 [a]--------[b] vm [a]-----------[b] v2
+      const ee1 = es1.which == 'b' ? e1 : e1.reverse();
+      const ee2 = es2.which == 'a' ? e2 : e2.reverse();
+
+      const idNew = nextEdge++ + '';
+      vertices[v1id] = replaceEdge(oldv1, es1.i, idNew, 'a');
+      vertices[v2id] = replaceEdge(oldv2, es2.i, idNew, 'b');
+      edges[idNew] = new MultiEdge(ee1, ee2);
+
+      delete vertices[vmid];
+      delete edges[es1.i];
+      delete edges[es2.i];
+
+    }
+  }
+  return { vertices, edges, nextEdge };
 }
 
+function replaceEdge(v: Vertex, idOld: string, idNew: string, whichNew?: 'a' | 'b'): Vertex {
+  return {
+    p: v.p,
+    edges: v.edges.map(e =>
+      (e.i == idOld) ? { i: idNew, which: whichNew == undefined ? e.which : whichNew } : e
+    )
+  };
+}
 export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData {
   const which1 = esBrk.which;
   const which2 = opposite(which1);
@@ -61,6 +107,9 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
   const idNew = g.nextEdge + '';
   const id3 = '*';
 
+  const vertices = u.shallowClone(g.vertices);
+  const edges = u.shallowClone(g.edges);
+
   ////// General picture of what's going on:
 
   // v2 (which2) .... m .... (which1) v1
@@ -72,16 +121,7 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
   ////// 1. deal with vertices
   const rootEdges: EdgeSpec[] =
     [{ i: idBrk, which: which1 }, { i: idNew, which: which2 }];
-  const vertices: Dict<Vertex> = {};
-  for (let [k, v] of Object.entries(g.vertices)) {
-    vertices[k] = v;
-  }
-  vertices[id1] = {
-    p: vertices[id1].p,
-    edges: vertices[id1].edges.map(e =>
-      (e.i == idBrk) ? { i: idNew, which: e.which } : e
-    )
-  };
+  vertices[id1] = replaceEdge(vertices[id1], idBrk, idNew);
   vertices[id3] = { p: m, edges: rootEdges };
 
 
@@ -96,7 +136,7 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
   const newEdge: PreEdge = { a: '', b: '', m: u.vavg(m, v1.p) };
   newEdge[which2] = id3;
   newEdge[which1] = id1;
-  const edges = Object.assign({}, g.edges);
+
   edges[idNew] = new OneEdge(vertices, newEdge);
 
 
@@ -130,10 +170,6 @@ export function findRootedGraph(g: GraphData): RootedGraphData {
   return breakGraphAtEdge(g, esBrk);
 }
 
-// gives the vertex id on the *other* side of es
-function across(g: GraphData, es: EdgeSpec): string {
-  return g.edges[es.i][opposite(es.which)];
-}
 
 export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
 

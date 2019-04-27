@@ -1,4 +1,4 @@
-import { Point } from './types';
+import { Point, Dict } from './types';
 
 export function sqr(x: number) {
   return x * x;
@@ -58,4 +58,8 @@ export function vrot90(a: Point): Point {
 
 export function angle(p: Point) {
   return Math.atan2(p.x, p.y);
+}
+
+export function shallowClone<T>(x: Dict<T>): Dict<T> {
+  return Object.assign({}, x);
 }

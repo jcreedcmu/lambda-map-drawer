@@ -3,6 +3,8 @@ import * as u from './util';
 
 const SMOL_OFFSET = 12;
 
+type Cubic = { A: Point, B: Point, C: Point, D: Point };
+
 export type PreEdge = {
   a: string, // vertex id
   b: string,
@@ -18,22 +20,31 @@ export interface Edge {
   getSegments(): EdgeSegment[];
   getArrowHeads(tgt: 'a' | 'b'): Arrowhead[];
   getVelocity(side: 'a' | 'b'): Point;
+  reverse(): Edge;
 }
 
-export class OneEdge implements Edge {
+function reverseSegment(seg: EdgeSegment): EdgeSegment {
+  return { va: seg.vb, vb: seg.va, m: seg.m };
+}
+
+class OneEdgeRaw implements Edge {
   a: string; // vertex id
   b: string;
   va: Point; // actual location of vertex
   vb: Point;
-  private m: Point; // center of gravity of edge
+  protected m: Point; // center of gravity of edge
 
-  constructor(vertices: Dict<Vertex>, pe: PreEdge) {
-    this.a = pe.a;
-    this.b = pe.b;
-    this.m = pe.m;
+  constructor(a: string, b: string, va: Point, vb: Point, m: Point) {
+    this.a = a;
+    this.b = b;
+    this.va = va;
+    this.vb = vb;
+    this.m = m;
+  }
 
-    this.va = vertices[pe.a].p;
-    this.vb = vertices[pe.b].p;
+  reverse(): OneEdgeRaw {
+    const { a, b, va, vb, m } = this;
+    return new OneEdgeRaw(b, a, vb, va, m);
   }
 
   draw(d: ContextLike): void {
@@ -84,17 +95,23 @@ export class OneEdge implements Edge {
   }
 }
 
-type Cubic = { A: Point, B: Point, C: Point, D: Point };
-
-class MultiEdge implements Edge {
+class MultiEdgeRaw implements Edge {
   a: string;
   b: string;
   segs: EdgeSegment[];
 
-  constructor(e1: Edge, e2: Edge) {
-    this.a = e1.a;
-    this.b = e1.b;
-    this.segs = e1.getSegments().concat(e2.getSegments());
+  constructor(opt: { a: string, b: string, segs: EdgeSegment[] }) {
+    this.a = opt.a;
+    this.b = opt.b;
+    this.segs = opt.segs;
+  }
+
+  reverse(): Edge {
+    return new MultiEdgeRaw({
+      a: this.b,
+      b: this.a,
+      segs: this.segs.map(reverseSegment).reverse()
+    });
   }
 
   draw(d: ContextLike) {
@@ -111,7 +128,8 @@ class MultiEdge implements Edge {
     return this.getCubics().map(cub => {
       const { A, B, C, D } = cub;
       const p = u.vmn([A, B, C, D], ([A, B, C, D]) => (A + 3 * B + 3 * C + D) / 8);
-      // this is actually *minus* the velocity at the midpoint of the cubic bezier
+      // this is actually *minus* the velocity at the midpoint of the cubic bezier,
+      // that helps get the right theta more easily:
       const v = u.vmn([A, B, C, D], ([A, B, C, D]) => (3 * A + B - C - 3 * D) / 4);
       const theta = (tgt == 'a' ? 0.5 : 1.5) * Math.PI - u.angle(v);
       return { p, theta };
@@ -153,4 +171,18 @@ class MultiEdge implements Edge {
     }
   }
 
+}
+
+// Expose only these constructors
+
+export class OneEdge extends OneEdgeRaw implements Edge {
+  constructor(vertices: Dict<Vertex>, pe: PreEdge) {
+    super(pe.a, pe.b, vertices[pe.a].p, vertices[pe.b].p, pe.m);
+  }
+}
+
+export class MultiEdge extends MultiEdgeRaw implements Edge {
+  constructor(e1: Edge, e2: Edge) {
+    super({ a: e1.a, b: e2.b, segs: e1.getSegments().concat(e2.getSegments()) });
+  }
 }

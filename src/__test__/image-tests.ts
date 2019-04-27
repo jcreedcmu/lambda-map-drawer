@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import 'mocha';
 import * as path from 'path';
 import { findConjoined } from '../conjoined';
-import { findGraph, findLambdaGraph, findRootedGraph } from '../graph';
+import { coalesceGraph, findGraph, findLambdaGraph, findRootedGraph } from '../graph';
 import { stringifyLam } from '../stringifyLam';
 
 function getImageDataOfFile(filename: string): ImageData {
@@ -25,8 +25,20 @@ function getImageDataOfFile(filename: string): ImageData {
 }
 
 function getLam(imgName: string) {
-  return stringifyLam(findLambdaGraph(findRootedGraph(findGraph(findConjoined(getImageDataOfFile(
-    path.join('../../public/img', imgName)))))).exp, '/');
+  return stringifyLam(
+    findLambdaGraph(
+      findRootedGraph(
+        coalesceGraph(
+          findGraph(
+            findConjoined(
+              getImageDataOfFile(
+                path.join('../../public/img', imgName)
+              )
+            )
+          )
+        )
+      )
+    ).exp, '/');
 }
 
 const imgTests =

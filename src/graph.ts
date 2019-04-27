@@ -34,8 +34,8 @@ export function findGraph(conj: ConjoinedData): GraphData {
 
   for (let v of Object.values(vertices)) {
     v.edges.sort((es1, es2) => {
-      const v1 = edges[es1.i].getVelocity(vertices, es1.which);
-      const v2 = edges[es2.i].getVelocity(vertices, es2.which);
+      const v1 = edges[es1.i].getVelocity(es1.which);
+      const v2 = edges[es2.i].getVelocity(es2.which);
       return u.angle(v1) - u.angle(v2);
     })
   }
@@ -104,7 +104,7 @@ export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData
   for (const [i, e] of Object.entries(g.edges)) {
     if (i == esBrk.i)
       continue;
-    otherRoots.push.apply(otherRoots, e.getRootChoices(g.vertices, i));
+    otherRoots.push.apply(otherRoots, e.getRootChoices(i));
   }
 
   const rootDir = u.vrot90(u.vnorm(u.vsub(v1.p, v2.p)));

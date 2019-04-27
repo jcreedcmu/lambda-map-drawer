@@ -82,7 +82,7 @@ function renderCyclicOrdering(g: GraphData, c: Canvas) {
     const colors = ["red", "green", "blue"];
     if (v.edges.length <= 3) {
       v.edges.forEach((e, i) => {
-        const vec = u.vplus(v.p, u.vscale(g.edges[e.i].getVelocity(g.vertices, e.which), 15));
+        const vec = u.vplus(v.p, u.vscale(g.edges[e.i].getVelocity(e.which), 15));
         d.beginPath();
         d.moveTo(v.p.x, v.p.y);
         d.lineTo(vec.x, vec.y);
@@ -101,13 +101,13 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
   for (const [i, e] of Object.entries(g.edges)) {
     const { a, b } = e;
     d.beginPath();
-    e.draw(g.vertices, d);
+    e.draw(d);
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.stroke();
 
     if (enabled('renderDebugId')) {
-      e.getArrowHeads(g.vertices, 'a').forEach(ah => {
+      e.getArrowHeads('a').forEach(ah => {
         const m = ah.p;
         d.beginPath();
         d.fillStyle = 'white';
@@ -194,11 +194,11 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     const va = g.vertices[a].p;
     const vb = g.vertices[b].p;
     d.beginPath();
-    e.draw(g.vertices, d);
+    e.draw(d);
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.stroke();
-    e.getArrowHeads(g.vertices, tgt).forEach(ah => {
+    e.getArrowHeads(tgt).forEach(ah => {
       drawArrowHead(d, ah.p, ah.angle);
     });
   }

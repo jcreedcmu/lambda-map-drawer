@@ -6,7 +6,7 @@ import {
 import * as u from './util';
 
 
-export function findGraph(conj: ConjoinedData): GraphData<Edge> {
+export function findGraph(conj: ConjoinedData): GraphData {
   const vertices: Dict<Vertex> = {};
   const edgeArr: Edge[] = [];
 
@@ -47,7 +47,7 @@ export function opposite(x: 'a' | 'b'): ('a' | 'b') {
   return x == 'a' ? 'b' : 'a';
 }
 
-export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGraphData<Edge> {
+export function breakGraphAtEdge(g: GraphData, esBrk: EdgeSpec): RootedGraphData {
   const which1 = esBrk.which;
   const which2 = opposite(which1);
   const idBrk = esBrk.i;
@@ -108,7 +108,7 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   };
 }
 
-export function findRootedGraph(g: GraphData<Edge>): RootedGraphData<Edge> {
+export function findRootedGraph(g: GraphData): RootedGraphData {
   const k = Object.keys(g.vertices);
   k.sort((a, b) => g.vertices[a].p.y - g.vertices[b].p.y);
 
@@ -123,11 +123,11 @@ export function findRootedGraph(g: GraphData<Edge>): RootedGraphData<Edge> {
 }
 
 // gives the vertex id on the *other* side of es
-function across(g: GraphData<Edge>, es: EdgeSpec): string {
+function across(g: GraphData, es: EdgeSpec): string {
   return g.edges[es.i][opposite(es.which)];
 }
 
-export function findLambdaGraph(g: RootedGraphData<Edge>): LambdaGraphData<Edge> {
+export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
 
   function connected(vid1: string, vid2: string): boolean {
     const seen: Dict<boolean> = {};
@@ -202,7 +202,7 @@ export function findLambdaGraph(g: RootedGraphData<Edge>): LambdaGraphData<Edge>
 
   let limit = 100;
   const vertices: Dict<LambdaVertex> = {};
-  const edges: Dict<LambdaEdge<Edge>> = {};
+  const edges: Dict<LambdaEdge> = {};
   let vid = g.rootData.root;
   let vert = g.vertices[vid];
   const leftEdge = vert.edges[0];

@@ -1,3 +1,5 @@
+import { Edge } from './edge';
+
 export type Canvas = { c: HTMLCanvasElement, d: CanvasRenderingContext2D };
 export type Point = { x: number, y: number };
 export type Dict<T> = { [id: string]: T };
@@ -44,9 +46,9 @@ export type Vertex = {
   edges: EdgeSpec[],
 }
 
-export type GraphData<E> = {
+export type GraphData = {
   vertices: Dict<Vertex>,
-  edges: Dict<E>,
+  edges: Dict<Edge>,
   nextEdge: number,
 }
 
@@ -57,11 +59,11 @@ export type RootData = {
   brokenEdge: EdgeSpec, // edge of the original graph that was broken
 }
 
-export type RootedGraphData<E> = GraphData<E> & { rootData: RootData }
+export type RootedGraphData = GraphData & { rootData: RootData }
 
 export type NodeType = 'app' | 'lam';
 export type LambdaVertex = Vertex & { t: NodeType };
-export type LambdaEdge<E> = { e: E, tgt: 'a' | 'b' };
+export type LambdaEdge = { e: Edge, tgt: 'a' | 'b' };
 
 export type Exp =
   | { t: 'var' }
@@ -78,9 +80,9 @@ export type ExpS =
     split: number // how many variables go to the f side
   };
 
-export type LambdaGraphData<E> = {
+export type LambdaGraphData = {
   vertices: Dict<LambdaVertex>,
-  edges: Dict<LambdaEdge<E>>,
+  edges: Dict<LambdaEdge>,
   rootData: RootData,
   exp: Exp,
 }

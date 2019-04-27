@@ -76,7 +76,7 @@ function renderDebug(conj: ConjoinedData, c2: Canvas) {
   });
 }
 
-function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
+function renderCyclicOrdering(g: GraphData, c: Canvas) {
   const { d } = c;
   for (const v of Object.values(g.vertices)) {
     const colors = ["red", "green", "blue"];
@@ -95,7 +95,7 @@ function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
   }
 }
 
-function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
+function renderGraph(g: RootedGraphData, c: Canvas) {
   const { d } = c
 
   for (const [i, e] of Object.entries(g.edges)) {
@@ -183,7 +183,7 @@ function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
   d.stroke(pp);
 }
 
-function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
+function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   const { d } = c
   for (const edge of Object.values(g.edges)) {
     if (edge == undefined) return;
@@ -293,9 +293,9 @@ class App {
   c1: Canvas;
   c2: Canvas;
   conj?: ConjoinedData;
-  graph?: GraphData<Edge>;
-  rootedGraph?: RootedGraphData<Edge>;
-  lambdaGraph?: LambdaGraphData<Edge>;
+  graph?: GraphData;
+  rootedGraph?: RootedGraphData;
+  lambdaGraph?: LambdaGraphData;
   forceRoot: EdgeSpec | undefined;
 
   compute() {

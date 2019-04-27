@@ -167,7 +167,8 @@ class MultiEdgeRaw implements Edge {
       return u.vnorm(u.vm2(cubs[0].A, cubs[0].B, (A, B) => 3 * (B - A)));
     }
     else {
-      return u.vnorm(u.vm2(cubs[0].C, cubs[0].D, (C, D) => 3 * (C - D)));
+      return u.vnorm(u.vm2(cubs[cubs.length - 1].C, cubs[cubs.length - 1].D,
+        (C, D) => 3 * (C - D)));
     }
   }
 

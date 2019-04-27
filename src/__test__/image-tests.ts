@@ -71,6 +71,10 @@ const imgTests =
     term: '/abcdef.a (/g.b (c (/h.d h) (e f g)))',
   },
   {
+    imgName: 'example4.png',
+    term: '/abcd.a (b (c (/e.d e)))',
+  },
+  {
     imgName: 'dodecahedron.png',
     term: '/abcde.a (/fg.b (/h.c (/i.d (/j.e (f (/k.g (h (i (j k)))))))))',
   },

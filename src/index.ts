@@ -498,6 +498,7 @@ const l = new Loader();
 l.image('./img/example1.png', 'example1');
 l.image('./img/example2.png', 'example2');
 l.image('./img/example3.png', 'example3');
+l.image('./img/example4.png', 'example4');
 l.image('./img/cube.png', 'cube');
 l.image('./img/dodecahedron.png', 'dodecahedron');
 l.image('./img/prism.png', 'prism');

@@ -1,5 +1,5 @@
 import { findConjoined } from './conjoined';
-import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite, edgeVelocity, midAngle } from './graph';
+import { breakGraphAtEdge, findGraph, findLambdaGraph, findRootedGraph, opposite } from './graph';
 import { Loader } from './loader';
 import { stringifyLam } from './stringifyLam';
 import {
@@ -81,7 +81,7 @@ function renderCyclicOrdering(g: GraphData<Edge>, c: Canvas) {
     const colors = ["red", "green", "blue"];
     if (v.edges.length <= 3) {
       v.edges.forEach((e, i) => {
-        const vec = u.vplus(v.p, u.vscale(edgeVelocity(g.vertices, g.edges[e.i], e.which), 15));
+        const vec = u.vplus(v.p, u.vscale(g.edges[e.i].getVelocity(g.vertices, e.which), 15));
         d.beginPath();
         d.moveTo(v.p.x, v.p.y);
         d.lineTo(vec.x, vec.y);
@@ -98,7 +98,7 @@ function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
   const { d } = c
 
   for (const [i, e] of Object.entries(g.edges)) {
-    const { a, b, m } = e;
+    const { a, b } = e;
     d.beginPath();
     e.draw(g.vertices, d);
     d.strokeStyle = "black";
@@ -106,15 +106,18 @@ function renderGraph(g: RootedGraphData<Edge>, c: Canvas) {
     d.stroke();
 
     if (enabled('renderDebugId')) {
-      d.beginPath();
-      d.fillStyle = 'white';
-      d.arc(m.x, m.y, EDGE_RAD, 0, Math.PI * 2);
-      d.fill();
-      d.textAlign = 'center';
-      d.textBaseline = 'middle'
-      d.font = 'bold 10px arial';
-      d.fillStyle = '#404';
-      d.fillText(i + '', m.x, m.y);
+      e.getArrowHeads(g.vertices, 'a').forEach(ah => {
+        const m = ah.p;
+        d.beginPath();
+        d.fillStyle = 'white';
+        d.arc(m.x, m.y, EDGE_RAD, 0, Math.PI * 2);
+        d.fill();
+        d.textAlign = 'center';
+        d.textBaseline = 'middle'
+        d.font = 'bold 10px arial';
+        d.fillStyle = '#404';
+        d.fillText(i + '', m.x, m.y);
+      });
     }
   }
   for (let [k, { p }] of Object.entries(g.vertices)) {
@@ -184,7 +187,7 @@ function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
   for (const edge of Object.values(g.edges)) {
     if (edge == undefined) return;
     const { e, tgt } = edge;
-    const { a, b, m } = e;
+    const { a, b } = e;
     if (g.vertices[a] == undefined) return;
     if (g.vertices[b] == undefined) return;
     const va = g.vertices[a].p;
@@ -194,7 +197,9 @@ function renderLambdaGraph(g: LambdaGraphData<Edge>, c: Canvas) {
     d.strokeStyle = "black";
     d.lineWidth = 1;
     d.stroke();
-    drawArrowHead(d, m, midAngle(g.vertices, edge.e, tgt));
+    e.getArrowHeads(g.vertices, tgt).forEach(ah => {
+      drawArrowHead(d, ah.p, ah.angle);
+    });
   }
 
   // Draw root edge

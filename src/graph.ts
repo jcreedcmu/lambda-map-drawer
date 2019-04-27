@@ -5,26 +5,6 @@ import {
 
 import * as u from './util';
 
-const SMOL_OFFSET = 12;
-
-// returns a tangent vector from an edge's endpoint to the interior of the edge
-// bear in mind that e.m is the 'midpoint' of the edge, and the quadratic
-// control point is actually
-// 2 * m - (a + b) / 2,
-export function edgeVelocity(vertices: Dict<Vertex>, e: Edge, side: 'a' | 'b'): Point {
-  const c = u.vmn([e.m, vertices[e.a].p, vertices[e.b].p], ([m, a, b]) => 2 * m - (a + b) / 2);
-  return u.vnorm(u.vsub(c, vertices[e[side]].p));
-}
-
-// assumed from a to b
-export function midAngle(vertices: Dict<Vertex>, e: Edge, target: 'a' | 'b'): number {
-  return (target == 'a' ? 0.5 : 1.5) * Math.PI - angle(u.vsub(vertices[e.a].p, vertices[e.b].p));
-}
-
-function angle(p: Point) {
-  return Math.atan2(p.x, p.y);
-}
-
 export function findGraph(conj: ConjoinedData): GraphData<Edge> {
   const vertices: Dict<Vertex> = {};
   const edgeArr: Edge[] = [];
@@ -53,9 +33,9 @@ export function findGraph(conj: ConjoinedData): GraphData<Edge> {
 
   for (let v of Object.values(vertices)) {
     v.edges.sort((es1, es2) => {
-      const v1 = edgeVelocity(vertices, edges[es1.i], es1.which);
-      const v2 = edgeVelocity(vertices, edges[es2.i], es2.which);
-      return angle(v1) - angle(v2);
+      const v1 = edges[es1.i].getVelocity(vertices, es1.which);
+      const v2 = edges[es2.i].getVelocity(vertices, es2.which);
+      return u.angle(v1) - u.angle(v2);
     })
   }
 
@@ -73,7 +53,7 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   const eBrk = g.edges[esBrk.i];
   const id1 = eBrk[which1];
   const v1 = g.vertices[id1];
-  const m = eBrk.m;
+  const m = eBrk.getBreakPoint();
   const id2 = eBrk[which2];
   const v2 = g.vertices[id2];
 
@@ -84,9 +64,12 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   // ->
   // v2 (which2) .... (which1) v3 (which2) .... (which1) v1
   //            idBrk                      idNew
-  g.edges[idBrk][which2] = id2;
-  g.edges[idBrk][which1] = id3;
-  g.edges[idBrk].m = u.vavg(v2.p, m);
+  if (which2 == 'a') {
+    g.edges[idBrk] = new Edge(id2, id3, u.vavg(v2.p, m));
+  }
+  else {
+    g.edges[idBrk] = new Edge(id3, id2, u.vavg(v2.p, m));
+  }
 
   const newEdge: Edge = new Edge('', '', u.vavg(m, v1.p));
   newEdge[which2] = id3;
@@ -112,12 +95,7 @@ export function breakGraphAtEdge(g: GraphData<Edge>, esBrk: EdgeSpec): RootedGra
   for (const [i, e] of Object.entries(g.edges)) {
     if (i == esBrk.i)
       continue;
-    const va = g.vertices[e.a].p;
-    const vb = g.vertices[e.b].p;
-    const off = u.vrot90(u.vscale(u.vnorm(u.vsub(va, vb)), SMOL_OFFSET));
-
-    otherRoots.push({ p: u.vplus(e.m, off), es: { i, which: 'a' } });
-    otherRoots.push({ p: u.vsub(e.m, off), es: { i, which: 'b' } });
+    otherRoots.push.apply(otherRoots, e.getRootChoices(g.vertices, i));
   }
 
   const rootDir = u.vrot90(u.vnorm(u.vsub(v1.p, v2.p)));

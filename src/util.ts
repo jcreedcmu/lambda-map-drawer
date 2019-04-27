@@ -55,3 +55,7 @@ export function vint(a: Point): Point {
 export function vrot90(a: Point): Point {
   return { x: a.y, y: -a.x };
 }
+
+export function angle(p: Point) {
+  return Math.atan2(p.x, p.y);
+}

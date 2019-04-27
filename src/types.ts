@@ -53,14 +53,15 @@ export type RootData = {
 
 export type RootedGraphData = GraphData & { rootData: RootData }
 
-export type NodeType = 'app' | 'lam';
-export type LambdaVertex = Vertex & { t: NodeType };
+export type NodeType = { t: 'app' } | { t: 'lam', n: number };
+export type LambdaVertex = Vertex & NodeType;
 export type LambdaEdge = { e: Edge, tgt: 'a' | 'b' };
 
 export type Exp =
-  | { t: 'var' }
-  | { t: 'lam', b: Exp }
-  | { t: 'app', f: Exp, arg: Exp };
+  | { t: 'var', n: number }
+  | { t: 'lam', b: Exp, n: number }
+  | { t: 'app', f: Exp, arg: Exp }
+  | { t: 'error' };
 
 export type ExpS =
   | { t: 'var' }

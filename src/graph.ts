@@ -180,6 +180,7 @@ export function findRootedGraph(g: GraphData): RootedGraphData {
 
 
 export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
+  let variableNameCounter = 0;
 
   function connected(vid1: string, vid2: string): boolean {
     const seen: Dict<boolean> = {};
@@ -208,9 +209,14 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   }
 
   function process(vid: string, incoming: EdgeSpec): Exp {
-    if (limit-- <= 0) return { t: 'var' };
-    if (vertices[vid] != undefined)
-      return { t: 'var' }; // already visited this vertex
+    if (limit-- <= 0) return { t: 'error' };
+    if (vertices[vid] != undefined) {
+      const vert = vertices[vid];
+      if (vert.t == 'lam')
+        return { t: 'var', n: vert.n }; // already visited this vertex
+      else
+        return { t: 'error' };
+    }
     const vedges = g.vertices[vid].edges;
     // find incoming edge
     const iix = vedges.findIndex(es => es.i == incoming.i);
@@ -234,11 +240,12 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   }
 
   function processAsLam(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {
+    const n = variableNameCounter++;
     const vert = g.vertices[vid];
-    vertices[vid] = { ...vert, t: 'lam' };
+    vertices[vid] = { ...vert, t: 'lam', n };
     awayFromMe(leftEdge);
 
-    return { t: 'lam', b: process(across(g, rightEdge), rightEdge) };
+    return { t: 'lam', b: process(across(g, rightEdge), rightEdge), n };
   }
 
   function processAsApp(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {
@@ -246,8 +253,8 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
     vertices[vid] = { ...vert, t: 'app' };
     towardMe(leftEdge);
 
-    const cl = process(across(g, leftEdge), leftEdge);
     const cr = process(across(g, rightEdge), rightEdge);
+    const cl = process(across(g, leftEdge), leftEdge);
     return { t: 'app', f: cr, arg: cl };
   }
 

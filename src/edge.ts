@@ -130,7 +130,7 @@ class MultiEdgeRaw implements Edge {
       const p = u.vmn([A, B, C, D], ([A, B, C, D]) => (A + 3 * B + 3 * C + D) / 8);
       // this is actually *minus* the velocity at the midpoint of the cubic bezier,
       // that helps get the right theta more easily:
-      const v = u.vmn([A, B, C, D], ([A, B, C, D]) => (3 * A + B - C - 3 * D) / 4);
+      const v = u.vmn([A, B, C, D], ([A, B, C, D]) => (3 * A + 3 * B - 3 * C - 3 * D) / 4);
       const theta = (tgt == 'a' ? 0.5 : 1.5) * Math.PI - u.angle(v);
       return { p, theta };
     });
@@ -164,10 +164,10 @@ class MultiEdgeRaw implements Edge {
   getVelocity(side: 'a' | 'b'): Point {
     const cubs = this.getCubics();
     if (side == 'a') {
-      return u.vnorm(u.vm2(cubs[0].A, cubs[0].B, (A, B) => B - 3 * A));
+      return u.vnorm(u.vm2(cubs[0].A, cubs[0].B, (A, B) => 3 * (B - A)));
     }
     else {
-      return u.vnorm(u.vm2(cubs[0].C, cubs[0].D, (C, D) => C - 3 * D));
+      return u.vnorm(u.vm2(cubs[0].C, cubs[0].D, (C, D) => 3 * (C - D)));
     }
   }
 

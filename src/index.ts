@@ -351,15 +351,15 @@ class App {
     return document.getElementById('examples')! as HTMLSelectElement
   }
 
-  invalidateSelectBox() {
+  invalidate() {
+    this.forceRoot = undefined;
     this.getExamples().selectedIndex = -1; // drawing invalidates example selection
   }
 
   paint(p: Point) {
     const { c1 } = this;
     const examples = this.getExamples();
-    this.invalidateSelectBox();
-    this.forceRoot = undefined;
+    this.invalidate();
 
     p = u.vint(p);
     const t = currentTool();
@@ -422,7 +422,7 @@ class App {
 
     document.getElementById('clear')!.addEventListener('click', () => {
       clearCanvas();
-      this.invalidateSelectBox();
+      this.invalidate();
       this.compute();
     });
 
@@ -488,7 +488,7 @@ class App {
                 c1.d.drawImage(im, Math.floor((c1.c.width - im.width) / 2), Math.floor((c1.c.height - im.height) / 2));
 
                 snapToColors(c1);
-                this.invalidateSelectBox();
+                this.invalidate();
                 this.compute();
               });
             }

@@ -10,7 +10,7 @@ export function nameFromNum(n: number): string {
 function _stringifyLam(e: Exp, frm: From, delim: string): string {
   switch (e.t) {
     case 'lam': {
-      const v = nameFromNum(e.n);
+      const v = nameFromNum(e.name);
       const bind = frm == 'lam' ? '' : delim;
       const rv = bind + v + _stringifyLam(e.b, 'lam', delim);
       return (frm == 'lam' || frm == 'top') ? rv : '(' + rv + ')';
@@ -22,7 +22,7 @@ function _stringifyLam(e: Exp, frm: From, delim: string): string {
       const rv = (pref + res1 + ' ' + res2);
       return frm == 'appr' ? '(' + rv + ')' : rv;
     }
-    case 'var': return nameFromNum(e.n);
+    case 'var': return nameFromNum(e.name);
     case 'error': return 'ERROR';
   }
 }

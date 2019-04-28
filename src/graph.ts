@@ -213,7 +213,7 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
     if (vertices[vid] != undefined) {
       const vert = vertices[vid];
       if (vert.t == 'lam')
-        return { t: 'var', n: vert.n }; // already visited this vertex
+        return { t: 'var', name: vert.name }; // already visited this vertex
       else
         return { t: 'error' };
     }
@@ -240,12 +240,12 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   }
 
   function processAsLam(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {
-    const n = variableNameCounter++;
+    const name = variableNameCounter++;
     const vert = g.vertices[vid];
-    vertices[vid] = { ...vert, t: 'lam', n };
+    vertices[vid] = { ...vert, t: 'lam', name };
     awayFromMe(leftEdge);
 
-    return { t: 'lam', b: process(across(g, rightEdge), rightEdge), n };
+    return { t: 'lam', b: process(across(g, rightEdge), rightEdge), name };
   }
 
   function processAsApp(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {

@@ -230,7 +230,7 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
       d.textAlign = 'center';
       d.textBaseline = 'middle'
       d.font = 'bold 12px arial';
-      d.fillText(nameFromNum(v.n), p.x, p.y);
+      d.fillText(nameFromNum(v.name), p.x, p.y);
 
     }
   }

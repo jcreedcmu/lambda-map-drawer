@@ -89,6 +89,10 @@ const imgTests =
   {
     imgName: 'virtual.png',
     term: '/abcde.a (b d e) c',
+  },
+  {
+    imgName: 'petersen.png',
+    term: '/abcde.a (/f.c (e (b (d f))))',
   }];
 
 describe('lambda graph computation', () => {

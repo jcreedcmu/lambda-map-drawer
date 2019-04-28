@@ -1,7 +1,7 @@
 import { findConjoined } from './conjoined';
 import { breakGraphAtEdge, findGraph, coalesceGraph, findLambdaGraph, findRootedGraph, opposite } from './graph';
 import { Loader } from './loader';
-import { stringifyLam } from './stringifyLam';
+import { stringifyLam, nameFromNum } from './stringifyLam';
 import {
   Canvas, ConjoinedData, EdgeSpec, GraphData, LambdaGraphData, Point,
   RootedGraphData, SizedArray, Tool
@@ -225,6 +225,14 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.arc(p.x, p.y, NODE_RAD, 0, 2 * Math.PI);
     d.fill();
     d.stroke();
+    if (enabled('renderVarNames') && v.t == 'lam') {
+      d.fillStyle = k == g.rootData.root ? 'black' : 'white';
+      d.textAlign = 'center';
+      d.textBaseline = 'middle'
+      d.font = 'bold 12px arial';
+      d.fillText(nameFromNum(v.n), p.x, p.y);
+
+    }
   }
 
   if (enabled('renderRootChoices')) {
@@ -385,6 +393,7 @@ class App {
       'renderGraph',
       'renderLambda',
       'renderRootChoices',
+      'renderVarNames',
     ].forEach(id => {
       document.getElementById(id)!.addEventListener('change', () => this.compute());
     });

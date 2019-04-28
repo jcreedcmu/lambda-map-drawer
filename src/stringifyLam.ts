@@ -3,7 +3,7 @@ import { Exp, ExpS } from './types';
 type From = 'lam' | 'appl' | 'appr' | 'top';
 type StringifyRes = { s: string, counter: number };
 
-function nameFromNum(n: number): string {
+export function nameFromNum(n: number): string {
   return String.fromCharCode(n + 97);
 }
 

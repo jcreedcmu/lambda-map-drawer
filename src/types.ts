@@ -26,9 +26,10 @@ export interface ContextLike {
 export type Arrowhead = { p: Point, theta: number };
 export type RootSpec = { p: Point, es: EdgeSpec };
 
-
+// Specifying an edge and which side of it we are on, from the point
+// of view of a vertex.
 export type EdgeSpec = {
-  i: string
+  i: string // edge id
   which: 'a' | 'b'
 };
 
@@ -53,7 +54,7 @@ export type RootData = {
 
 export type RootedGraphData = GraphData & { rootData: RootData }
 
-export type NodeType = { t: 'app' } | { t: 'lam', name: number };
+export type NodeType = { t: 'app' } | { t: 'lam', name: number, varEdge: EdgeSpec };
 export type LambdaVertex = Vertex & NodeType;
 export type LambdaEdge = { e: Edge, tgt: 'a' | 'b' };
 

@@ -242,7 +242,7 @@ export function findLambdaGraph(g: RootedGraphData): LambdaGraphData {
   function processAsLam(vid: string, leftEdge: EdgeSpec, rightEdge: EdgeSpec): Exp {
     const name = variableNameCounter++;
     const vert = g.vertices[vid];
-    vertices[vid] = { ...vert, t: 'lam', name };
+    vertices[vid] = { ...vert, t: 'lam', name, varEdge: leftEdge };
     awayFromMe(leftEdge);
 
     return { t: 'lam', b: process(across(g, rightEdge), rightEdge), name };

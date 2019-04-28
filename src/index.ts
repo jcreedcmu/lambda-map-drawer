@@ -163,8 +163,6 @@ function drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
   d.lineTo(2, 0);
   d.lineTo(0, 3);
   d.lineTo(8, 0);
-  d.fillStyle = "black";
-  d.fill();
   d.restore();
 }
 
@@ -185,7 +183,7 @@ function drawSmolClickable(d: CanvasRenderingContext2D, p: Point) {
 
 function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   const { d } = c
-  for (const edge of Object.values(g.edges)) {
+  for (const [i, edge] of Object.entries(g.edges)) {
     if (edge == undefined) return;
     const { e, tgt } = edge;
     const { a, b } = e;
@@ -195,11 +193,23 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     const vb = g.vertices[b].p;
     d.beginPath();
     e.draw(d);
-    d.strokeStyle = "black";
+
+    let edgeColor = 'black';
+
+    if (enabled('renderVarEdges')) {
+      const vt = g.vertices[e[opposite(tgt)]];
+      if (vt.t == 'lam' && vt.varEdge.i == i) {
+        edgeColor = '#a4bbd3';
+      }
+    }
+
+    d.strokeStyle = edgeColor;
     d.lineWidth = 1;
     d.stroke();
+    d.fillStyle = edgeColor;
     e.getArrowHeads(tgt).forEach(ah => {
       drawArrowHead(d, ah.p, ah.theta);
+      d.fill();
     });
   }
 
@@ -213,7 +223,9 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   d.strokeStyle = "black";
   d.lineWidth = 1;
   d.stroke();
+  d.fillStyle = "black";
   drawArrowHead(d, vs, Math.atan2(g.rootData.rootDir.y, g.rootData.rootDir.x));
+  d.fill();
 
   for (let [k, v] of Object.entries(g.vertices)) {
     if (v == undefined) return;
@@ -231,7 +243,6 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
       d.textBaseline = 'middle'
       d.font = 'bold 12px arial';
       d.fillText(nameFromNum(v.name), p.x, p.y);
-
     }
   }
 
@@ -394,6 +405,7 @@ class App {
       'renderLambda',
       'renderRootChoices',
       'renderVarNames',
+      'renderVarEdges',
     ].forEach(id => {
       document.getElementById(id)!.addEventListener('change', () => this.compute());
     });

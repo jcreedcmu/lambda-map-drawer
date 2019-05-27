@@ -156,6 +156,7 @@ function renderGraph(g: RootedGraphData, c: Canvas) {
 
 function drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
   d.save();
+  d.beginPath();
   d.translate(p.x, p.y);
   d.rotate(angle);
   d.beginPath();
@@ -163,6 +164,7 @@ function drawArrowHead(d: CanvasRenderingContext2D, p: Point, angle: number) {
   d.lineTo(2, 0);
   d.lineTo(0, 3);
   d.lineTo(8, 0);
+  d.fill();
   d.restore();
 }
 
@@ -209,7 +211,6 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
     d.fillStyle = edgeColor;
     e.getArrowHeads(tgt).forEach(ah => {
       drawArrowHead(d, ah.p, ah.theta);
-      d.fill();
     });
   }
 
@@ -225,7 +226,6 @@ function renderLambdaGraph(g: LambdaGraphData, c: Canvas) {
   d.stroke();
   d.fillStyle = "black";
   drawArrowHead(d, vs, Math.atan2(g.rootData.rootDir.y, g.rootData.rootDir.x));
-  d.fill();
 
   for (let [k, v] of Object.entries(g.vertices)) {
     if (v == undefined) return;
@@ -347,6 +347,7 @@ class App {
         const exp = renderLambdaGraph(lg, c2);
       }
       catch (e) {
+        console.log(e);
         document.getElementById('lambda')!.innerHTML = '<font color="red">All nodes must have exactly three edges to compute lambda graph.</font>';
         renderGraph(rg, c2);
       }

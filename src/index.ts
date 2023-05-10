@@ -526,7 +526,9 @@ l.image('./img/dodecahedron.png', 'dodecahedron');
 l.image('./img/prism.png', 'prism');
 l.image('./img/tetrahedron.png', 'tetrahedron');
 l.image('./img/tutte.png', 'tutte');
+l.image('./img/whitney1931.png', 'whitney1931');
 l.image('./img/petersen.png', 'petersen');
+l.image('./img/watkins.png', 'watkins');
 l.image('./img/virtual.png', 'virtual');
 l.done(() => app.go());
 
